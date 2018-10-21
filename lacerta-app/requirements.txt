@@ -1,4 +1,5 @@
 flask
+flask-s3
 zappa
 gunicorn
 gevent
