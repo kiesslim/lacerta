@@ -11,7 +11,7 @@ $(document).ready(function() {
 			.attr("height", "95.44%")
 			.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-	$.getJSON("static/testing_data/graph11.json", function(graph) {
+	$.getJSON("{{ url_for('static', filename='testing_data/graph11.json') }}", function(graph) {
 		var node_count = graph.nodes.length;
 		var link_count = graph.links.length;
 
@@ -80,7 +80,7 @@ $(document).ready(function() {
 			        .attr("y1", function(d) { graph_linknodes[d.index].y1 = d.source.y; return d.source.y; })
 			        .attr("x2", function(d) { graph_linknodes[d.index].x2 = d.target.x; return d.target.x; })
 			        .attr("y2", function(d) { graph_linknodes[d.index].y2 = d.target.y; return d.target.y; });
-				    
+
 				var i = 0;
 			    node
 			        .attr("cx", d => d.x)
@@ -88,12 +88,12 @@ $(document).ready(function() {
 			        .attr("fill", color = function() {i++; return scale(i % 10);});
 			    node.append("title")
 			      .text(d => d.id);
-			   
+
 			    linknode
-			        .attr("cx", function(d) { 
+			        .attr("cx", function(d) {
 			        	return (graph_linknodes[d.index - node_count].x1 +
 			        		graph_linknodes[d.index - node_count].x2) * 0.5; })
-			        .attr("cy", function(d) { 
+			        .attr("cy", function(d) {
 			        	return (graph_linknodes[d.index - node_count].y1 +
 			        		graph_linknodes[d.index - node_count].y2) * 0.5; });
 
@@ -118,7 +118,7 @@ $(document).ready(function() {
 						.attr("class","graph_arrowhead");
 
 				d3.selectAll(".graph_line")
-					.attr("marker-end", "url(#graph_arrow)")	    	
+					.attr("marker-end", "url(#graph_arrow)")
 			}
 
 			function forceSimulation(nodes, links) {
@@ -128,14 +128,14 @@ $(document).ready(function() {
 			      .force("center", d3.forceCenter())
 			      .force("collision", d3.forceCollide().radius(6))
 			      .alphaDecay([alpha_stop]);
-		
+
 			}
 		} else {
 			spiral_plot(graph.nodes, graph.links);
 		}
-		
+
 	});
-	
+
 });
 
 function spiral_plot(points, lines) {
@@ -167,7 +167,7 @@ function spiral_plot(points, lines) {
 		l_list[j].y1 = p_list[l.source].y;
 		l_list[j++].y2 = p_list[l.target].y;
 	});
-	
+
 	var data_points = Object.keys(p_list).map(function(key) {
   		return {"id": key, "x": p_list[key].x, "y": p_list[key].y};
 	});
@@ -203,7 +203,7 @@ function spiral_plot(points, lines) {
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-	    
+
 	var i = 0;
     node
         .attr("x", d => d.x - 9)
