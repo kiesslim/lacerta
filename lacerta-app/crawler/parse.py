@@ -3,6 +3,7 @@
 from lxml import etree
 from lxml import html
 from lxml.html.clean import Cleaner
+from random import shuffle
 import requests
 import sys
 from urllib.parse import urldefrag, urlparse, urlsplit, urljoin
@@ -55,15 +56,3 @@ class Web:
     def validate_url(self, url):
         components = urlparse(url)
         return components.scheme and components.netloc
-
-
-# # TODO: remove main and store in class
-# if __name__ == '__main__':
-#     if len(sys.argv) != 2:
-#         print('Missing Script Argument: html-parser.py [url]')
-#     start_url = sys.argv[1]
-#     web = Web(start_url)
-#     for url in web.urls:
-#         print(url)
-#         w = Web(url)
-#         print(w.title)
