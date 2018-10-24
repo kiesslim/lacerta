@@ -12,7 +12,7 @@ $(document).ready(function() {
 			.attr("height", "95.44%")
 			.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-	$.getJSON("{{ url_for('static', filename='testing_data/graph8.json') }}", function(graph) {
+	$.getJSON("{{ url_for('static', filename='testing_data/graph7.json') }}", function(graph) {
 		var node_count = graph.nodes.length;
 		var link_count = graph.links.length;
 
@@ -125,7 +125,8 @@ $(document).ready(function() {
 
 				d3.selectAll(".crawler_graph circle")
 					.on("mouseover", circle_node_ingress)
-					.on("mouseout", circle_node_egress);
+					.on("mouseout", circle_node_egress)
+					.on("click", circle_node_click);
  
 			}
 
@@ -159,7 +160,7 @@ $(document).ready(function() {
 		var overall_container = d3.select("#container4");
 		overall_container	
 			.append("div")
-				.html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_label_text)
+				.html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + "https://oregonstate.edu")
 				.attr("id", "graph_node_label");
 		var new_node_label = document.getElementById("graph_node_label");
 		new_node_label.style.left = label_x;
@@ -174,6 +175,10 @@ $(document).ready(function() {
 			.attr("fill", color)
 			.attr("r", 10);
 		d3.selectAll("#container4 #graph_node_label").remove();
+	}
+
+	function circle_node_click() {
+		window.open("https://oregonstate.edu", "_blank");
 	}
 
 });
@@ -269,7 +274,8 @@ function spiral_plot(points, lines, node_labels) {
 
 	d3.selectAll(".crawler_graph rect")
 					.on("mouseover", rect_node_ingress)
-					.on("mouseout", rect_node_egress);
+					.on("mouseout", rect_node_egress)
+					.on("click", rect_node_click);
 
 	function rect_node_ingress() {
 		var this_rect = d3.select(this);
@@ -291,7 +297,7 @@ function spiral_plot(points, lines, node_labels) {
 		var overall_container = d3.select("#container4");
 		overall_container	
 			.append("div")
-				.html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_label_text)
+				.html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + "https://oregonstate.edu")
 				.attr("id", "graph_node_label");
 		var new_node_label = document.getElementById("graph_node_label");
 		new_node_label.style.left = label_x;
@@ -312,6 +318,10 @@ function spiral_plot(points, lines, node_labels) {
 			.attr("width", 22)
    	      	.attr("height", 22);
 		d3.selectAll("#container4 #graph_node_label").remove();
+	}
+
+	function rect_node_click() {
+		window.open("https://oregonstate.edu", "_blank");
 	}
 
 }
