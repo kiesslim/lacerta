@@ -2,3 +2,5 @@
 */.env
 *.pyc
 zappa_settings.json
+*/venv
+*/venv2
