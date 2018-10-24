@@ -8,7 +8,7 @@ sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 
 app = Flask(__name__)
-app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app2'
+app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
 
 @app.route("/")
