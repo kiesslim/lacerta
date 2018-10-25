@@ -6,8 +6,9 @@ from parse import Web, validate_url
 from queue import Queue
 
 
-MAX_NODES=100
+MAX_NODES=20
 
+#TODO: Error handling! Depth!!
 class Node:
     def __init__(self, web):
         if web is None:
@@ -15,17 +16,16 @@ class Node:
         if not validate_url(web.url) or web.status_code is not 200:
             return None
         self.url = web.url
-        self.edges = web.urls
+        self.edges = list(web.urls)
         self.title = web.title
         self.has_keyword = False
 
     def __str__(self):
         if self is None:
             return
-        str = 'url: {}, title: {}, has_keyword: {}, edges:'.format(self.url, self.title, self.has_keyword)
-        for edge in self.edges:
-            str.join(' {},'.format(edge))
-        return str
+        node_str = 'url: {}, title: {}, has_keyword: {}, edges:'.format(self.url, self.title, self.has_keyword)
+        edges_str = ','.join(self.edges)
+        return '{} {}'.format(node_str, edges_str)
 
 # graph = {
 #     'start_url' : start,
@@ -56,9 +56,9 @@ def search(start_url, max_depth, keyword, search_type):
     g = Graph(start_url, max_depth, keyword, search_type)
     if not validate_url(start_url):
         raise ValueError('Invalid Start URL: {}'.format(start_url))
-    if search_type is 'BFS':
+    if search_type == 'BFS':
         return bfs(g, 0, max_depth)
-    elif search_type is 'DFS':
+    elif search_type == 'DFS':
         return dfs(g, 0, max_depth)
     else:
         raise ValueError('Invalid Search Type: Specify BFS or DFS')
