@@ -1,6 +1,6 @@
 {  
   "origin":"google.com",
-  "searchType":"DFS",
+  "search_type":"DFS",
   "limit":"2",
   "data":
     [
