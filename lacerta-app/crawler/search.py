@@ -30,6 +30,7 @@ class Node:
 # graph = {
 #     'start_url' : start,
 #     'search_type' : 'bfs',
+#     'depth' : depth,
 #     'keyword' : keyword,
 #     'nodes' : {
 #         'url1': {
@@ -111,6 +112,9 @@ def dfs(graph, current_depth, max_depth):
 '''converts search graph format to d3 accepted data format'''
 def transformGraph(graph):
     result = { 
+        'start_url': graph['start_url'],
+        'keyword': graph['keyword'],
+        'depth': graph['depth'],
         'type': graph['search_type'],
         'links': list(),
         'nodes': list()
