@@ -107,3 +107,24 @@ def dfs(graph, current_depth, max_depth):
     for k,v in graph.nodes.items():
         print('{}: {}\n'.format(k, v))
     return graph
+
+'''converts search graph format to d3 accepted data format'''
+def transformGraph(graph):
+    result = { 
+        'type': graph['search_type'],
+        'links': list(),
+        'nodes': list()
+    }
+
+    for url in graph['nodes'].items():
+        node = {
+            'title': url[1]['title'], 
+            'url':url[0],
+            'has_keyword': url[1]['has_keyword']
+        }
+        result['nodes'].append(node)
+        for edge in url[1]['edges']:
+            link = {'source': url[0], 'target': edge}
+            result['links'].append(link)
+
+    return json.dumps(result, indent=True)

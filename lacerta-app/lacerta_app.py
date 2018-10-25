@@ -27,6 +27,7 @@ def query(name=None):
 		result = search.bfs(start, depth, keyword)
 	elif search_type == "DFS":
 		result = search.dfs(start, depth, keyword)
+	result = search.transformGraph(result)
 	return render_template('layout.html', name=name, result=result)
 
 # @app.route("/dfs", methods=['POST'])
