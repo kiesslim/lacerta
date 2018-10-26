@@ -34,6 +34,9 @@ def query(name=None):
 	 	return bad_request('Error: search type {} is an invalid search type'.format(search_type))
 	try:
 		result = search.search(start, depth, keyword, search_type)
+    result_json = search.loadGraph(result)
+	  result_json_d3 = search.transformGraph(result_json)
+	  return render_template('layout.html', name=name, result=result_json_d3)
 		return render_template('layout.html', name=name, result=result)
 	except ValueError as error:
 		return bad_request(str(error))

@@ -30,6 +30,7 @@ class Node:
 # graph = {
 #     'start_url' : start,
 #     'search_type' : 'bfs',
+#     'depth' : depth,
 #     'keyword' : keyword,
 #     'nodes' : {
 #         'url1': {
@@ -107,3 +108,50 @@ def dfs(graph, current_depth, max_depth):
     for k,v in graph.nodes.items():
         print('{}: {}\n'.format(k, v))
     return graph
+
+'''loads node object to json format'''
+def loadNode(n):
+    result = {
+        'url': n.url,
+        'title': n.title,
+        'has_keyword': n.has_keyword,
+        'edges': list(n.edges)
+    }
+    return result
+
+'''loads graph object to json format'''
+def loadGraph(g):
+    result = {
+        'start_url' : g.start_url,
+        'search_type' : g.search_type,
+        'depth' : g.depth,
+        'keyword' : g.keyword,
+        'nodes' : dict()
+    }
+    for k,v in g.nodes.items():
+        result['nodes'][k] = loadNode(v)
+    return result
+
+'''converts search graph format to d3 accepted data format'''
+def transformGraph(graph):
+    result = { 
+        'start_url': graph['start_url'],
+        'keyword': graph['keyword'],
+        'depth': graph['depth'],
+        'type': graph['search_type'],
+        'links': list(),
+        'nodes': list()
+    }
+
+    for url in graph['nodes'].items():
+        node = {
+            'title': url[1]['title'], 
+            'url':url[0],
+            'has_keyword': url[1]['has_keyword']
+        }
+        result['nodes'].append(node)
+        for edge in url[1]['edges']:
+            link = {'source': url[0], 'target': edge}
+            result['links'].append(link)
+
+    return json.dumps(result, indent=True)
