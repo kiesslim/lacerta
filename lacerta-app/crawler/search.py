@@ -73,7 +73,7 @@ def bfs(graph, current_depth, max_depth):
     toVisit.put(start)
 
     # TODO: remove len(g) <100 and replace with current_depth < max_depth
-    while not toVisit.empty() and len(graph.nodes) < MAX_NODES:
+    while not toVisit.empty() and len(graph.nodes) < 2:
         current = toVisit.get()
         node = Node(Web(current))
         if node is not None:
