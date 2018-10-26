@@ -11,7 +11,8 @@ $(document).ready(function() {
             url: "./query",
             data: package,
             success: function(data) {
-                window.location.href = "/";
+								console.log(data)
+                //window.location.href = "./";
             }
         });
         event.preventDefault();
