@@ -109,6 +109,18 @@ def dfs(graph, current_depth, max_depth):
         print('{}: {}\n'.format(k, v))
     return graph
 
+'''loads graph object to json format'''
+def loadGraph(g):
+    result = {
+        'start_url' : g.start_url,
+        'search_type' : g.search_type,
+        'depth' : g.max_depth,
+        'keyword' : g.keyword,
+        'nodes' : json.loads(g.nodes)
+    }
+
+    return result
+
 '''converts search graph format to d3 accepted data format'''
 def transformGraph(graph):
     result = { 
