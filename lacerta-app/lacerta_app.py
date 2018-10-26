@@ -37,7 +37,9 @@ def query(name=None):
 		result = search.search(start, depth, keyword, search_type)
 		result_json = search.loadGraph(result)
 		result_json_d3 = search.transformGraph(result_json)
-		return render_template('layout.html', name=name, result=result_json_d3)
+		#NOTE: commented this out as we should just be returning json data, not rendering
+		#return render_template('layout.html', name=name, result=result_json_d3)
+		return result_json_d3, 200
 	except ValueError as error:
 		return bad_request(str(error))
 
