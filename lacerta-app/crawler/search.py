@@ -4,6 +4,7 @@ from flask import jsonify
 import json
 from parse import Web, validate_url
 from queue import Queue
+import random
 
 
 MAX_NODES=20
@@ -80,9 +81,6 @@ def bfs(graph, current_depth, max_depth):
             for edge in node.edges:
                 if edge not in graph.nodes:
                     toVisit.put(edge)
-    print('\n\n\n\n\nPrinting Graph:\n\n\n\n\n')
-    for k,v in graph.nodes.items():
-        print('{}: {}\n'.format(k, v))
     return graph
 
 '''Note: bfs/dfs look the same, but will be different when depth handled'''
@@ -98,15 +96,18 @@ def dfs(graph, current_depth, max_depth):
     while toVisit and len(graph.nodes) < MAX_NODES:
         current = toVisit.pop()
         node = Node(Web(current))
+        if node.edges:
+            #select random edge
+            random_edge = random.choice(node.edges)
+            #remove edges
+            node.edges[:] = []
+            #add random edge
+            node.edges.append(random_edge)
         if node is not None:
             graph.add_node(node)
             for edge in node.edges:
                 if edge not in graph.nodes:
                     toVisit.append(edge)
-
-    print('\n\n\n\n\nPrinting Graph:\n\n\n\n\n\n')
-    for k,v in graph.nodes.items():
-        print('{}: {}\n'.format(k, v))
     return graph
 
 '''loads node object to json format'''
