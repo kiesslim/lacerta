@@ -54,7 +54,7 @@ class Web:
         cleaned = html.fromstring(cleaner.clean_html(self.response.content))
         raw_urls = cleaned.xpath('//a/@href')
         #TODO: validate_urls before adding?
-        return [self.urls.add(self.absolute_url(self.normalize(url))) for url in raw_urls]
+        return shuffle([self.urls.add(self.absolute_url(self.normalize(url))) for url in raw_urls])
 
     def get_title_from_html(self):
         if self.html is None:

@@ -8,7 +8,7 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "./query",
+            url: "dev/query",
             data: package,
             success: function(data) {
 								console.log(data)

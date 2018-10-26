@@ -1,3 +1,23 @@
-
 <div class="col col-container2" id="container2">
+  
+  <ul class="list-unstyled">
+    <li class=""><h6>User: {{user}}</h6></li>
+    <li class=""><h5>Log Data</h5></li>
+    <li class=""><h4>Origin: {{data.origin}}</h4></li>
+    <li class=""><h6>Crawl Type: {{data.search_type}}</h6></li>
+    <li class=""><h6>Limit: {{data.limit}}</h6></li>
+    <ul class="list-unstyled">
+      {% for row in data.data %}
+      <li>Dive {{loop.index}}</li>
+        <ul>
+          {% for obj in row %}
+            <li class="">
+              <a href="{{obj.url}}">{{obj.title}}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    </ul>
+  </ul>
+
 </div>
