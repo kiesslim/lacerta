@@ -1,6 +1,7 @@
 
 $(document).ready(function() {
 	$('#new_query_button').click( function (e) {
+        e.preventDefault();
 		var package = {};
 		package["start_url"] = $("#start_url").val();
 		package["depth"] = $("#depth").val();
@@ -16,18 +17,25 @@ $(document).ready(function() {
                 plotCrawlerGraph(graph);
             }
         });
-        event.preventDefault();
 	});
 });
 
 function plotCrawlerGraph(graph) {
 
     console.log(graph);
+    d3.selectAll(".crawler_graph g").remove();
+    d3.selectAll(".crawler_graph defs").remove();
+
+    // Scroll to graph
+    $('html, body').animate({
+            scrollTop: $("#container4").offset().top
+        }, 400);
 
     var parent_container = document.getElementById("container4");
     var width = parent_container.offsetWidth * 0.9544;
     var height = parent_container.offsetHeight * 0.9544;
     var node_labels = [];
+    var node_urls = [];
 
     const scale = d3.scaleOrdinal(d3.schemeCategory10);
     svg = d3.select(".crawler_graph")
@@ -39,11 +47,9 @@ function plotCrawlerGraph(graph) {
     var node_count = graph.nodes.length;
     var link_count = graph.links.length;
 
-    console.log(graph.nodes);
-    console.log(graph.links);
-
     graph.nodes.forEach(function(e) {
-        node_labels.push(e.id);
+        node_labels.push(e.title);
+        node_urls.push(e.id);
     });
 
     if (graph.type == "BFS") {
@@ -166,7 +172,7 @@ function plotCrawlerGraph(graph) {
 
         }
     } else {
-        spiral_plot(graph.nodes, graph.links, node_labels);
+        spiral_plot(graph.nodes, graph.links, node_labels, node_urls);
     }
 
     //});
@@ -207,7 +213,7 @@ function plotCrawlerGraph(graph) {
         window.open("https://oregonstate.edu", "_blank");
     }
 
-    function spiral_plot(points, lines, node_labels) {
+    function spiral_plot(points, lines, node_labels, node_urls) {
         //var parent_container = document.getElementById("container4");
         //var width = parent_container.offsetWidth * 0.9544;
         //var height = parent_container.offsetHeight * 0.9544;
@@ -246,8 +252,6 @@ function plotCrawlerGraph(graph) {
             return {"source": {"x": l_list[key].x1, "y": l_list[key].y1}, "target": {"x": l_list[key].x2, "y": l_list[key].y2}};
         });
 
-        d3.selectAll(".crawler_graph g").remove();
-
         var link = svg.append("g")
           .attr("stroke", "#717171")
           .attr("stroke-opacity", 0.6)
@@ -278,7 +282,8 @@ function plotCrawlerGraph(graph) {
             .attr("x", d => d.x - 11)
             .attr("y", d => d.y - 11)
             .attr("fill", color = function(d) { return scale(d.index % 10);})
-            .attr("id", function(d) { return "graph_node" + String(d.index);});
+            .attr("id", function(d) { return "graph_node" + String(d.index);})
+            .attr("jump_link", function(d) { return node_urls[d.index]; })
 
         defs = svg.append("defs");
         defs.append("marker")
@@ -304,6 +309,7 @@ function plotCrawlerGraph(graph) {
         function rect_node_ingress() {
             var this_rect = d3.select(this);
             var node_label_text = node_labels[Number(this_rect.attr("id").slice(10))];
+            var node_url_text = node_urls[Number(this_rect.attr("id").slice(10))];
             var current_x = Number(this_rect.attr("x"));
             var current_y = Number(this_rect.attr("y"));
             this_rect
@@ -321,7 +327,7 @@ function plotCrawlerGraph(graph) {
             var overall_container = d3.select("#container4");
             overall_container   
                 .append("div")
-                    .html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + "https://oregonstate.edu")
+                    .html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_url_text)
                     .attr("id", "graph_node_label");
             var new_node_label = document.getElementById("graph_node_label");
             new_node_label.style.left = label_x;
@@ -345,7 +351,9 @@ function plotCrawlerGraph(graph) {
         }
 
         function rect_node_click() {
-            window.open("https://oregonstate.edu", "_blank");
+            this_rect = d3.select(this);
+            var url_link = this_rect.attr("jump_link");
+            window.open(url_link, "_blank");
         }
 
     }

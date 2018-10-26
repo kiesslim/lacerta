@@ -1,21 +1,34 @@
 #!/usr/bin/python3.6
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 from flask_s3 import FlaskS3, url_for
-import sys, os
+import json, uuid
+import sys, os 
 from os import path
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import validate_url
 
 app = Flask(__name__)
+app.secret_key = b'_0fc19abebf60465c3d/'
 app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
+
+def getCookieData():
+	with open('test_log.json') as data:
+		return json.load(data)
 
 @app.route("/")
 def hello(name=None):
 	print("hi")
-	return render_template('layout.html', name=name)
+	if 'user' in session:
+		user = session['user']
+		data = getCookieData()
+	else:
+		session['user'] = uuid.uuid4()
+		user = session['user']
+		data = None
+	return render_template('layout.html', name=name, data=data)
 
 @app.route("/query", methods=['POST'])
 def query(name=None):
@@ -37,8 +50,6 @@ def query(name=None):
 		result = search.search(start, depth, keyword, search_type)
 		result_json = search.loadGraph(result)
 		result_json_d3 = search.transformGraph(result_json)
-		#NOTE: commented this out as we should just be returning json data, not rendering
-		#return render_template('layout.html', name=name, result=result_json_d3)
 		return result_json_d3, 200
 	except ValueError as error:
 		return bad_request(str(error))
