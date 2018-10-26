@@ -8,10 +8,9 @@ import requests
 import sys
 from urllib.parse import urldefrag, urlparse, urlsplit, urljoin
 
-
+#TODO: error handling & get_text from html!
 class Web:
     def __init__(self, url):
-        # TODO: add error handling for URL
         print(url)
         if not validate_url(url):
             raise ValueError('Invalid  URL: URL {} is invalid'.format(url))
@@ -62,7 +61,7 @@ class Web:
             return None
         return self.html.findtext('.//title')
 
-    # TODO: 
+    # TODO:
     def get_text(self):
         return
 

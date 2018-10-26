@@ -8,10 +8,11 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "/query",
+            url: "./query",
             data: package,
             success: function(data) {
-                window.location.href = "/";
+								console.log(data)
+                //window.location.href = "./";
             }
         });
         event.preventDefault();
