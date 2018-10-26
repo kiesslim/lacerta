@@ -146,8 +146,8 @@ def transformGraph(graph):
 
     for url in graph['nodes'].items():
         node = {
+            'id':url[0],
             'title': url[1]['title'],
-            'url':url[0],
             'has_keyword': url[1]['has_keyword']
         }
         result['nodes'].append(node)
