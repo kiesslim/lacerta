@@ -1,9 +1,10 @@
 #!/usr/bin/python3.6
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 from flask_s3 import FlaskS3, url_for
+from os import path
 from flask_dynamo import Dynamo
-import sys, os, json
+import sys, os, json, uuid
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import validate_url
@@ -11,6 +12,11 @@ import dynamo
 
 
 app = Flask(__name__)
+text_file = open('session_credential.txt', 'r')
+secret_key_string = text_file.read()
+secret_key_bytes = bytes(secret_key_string, 'utf-8')
+app.secret_key = secret_key_bytes
+text_file.close()
 app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
 # works when testing locally because no access keys included in app config
@@ -26,12 +32,23 @@ s3 = FlaskS3(app)
 # with app.app_context():
 #   db.create_all()
 
+def getCookieData():
+	with open('test_log.json') as data:
+		return json.load(data)
+
 @app.route("/")
 def hello(name=None):
 	print("hi")
+	if 'user' in session:
+		user = session['user']
+		data = getCookieData()
+	else:
+		session['user'] = uuid.uuid4()
+		user = session['user']
+		data = None
 	#response = dynamo.view(db)
 	#print(response, file=sys.stderr)
-	return render_template('layout.html', name=name)
+	return render_template('layout.html', name=name, data=data)
 
 @app.route("/query", methods=['POST'])
 def query(name=None):
@@ -56,8 +73,6 @@ def query(name=None):
 		#			 want to upload access keys to github where they will be scraped...
 		#dynamo.add_item(db, result_json['start_url'], json.dumps(result_json))
 		result_json_d3 = search.transformGraph(result_json)
-		#NOTE: commented this out as we should just be returning json data, not rendering
-		#return render_template('layout.html', name=name, result=result_json_d3)
 		return result_json_d3, 200
 	except ValueError as error:
 		return bad_request(str(error))
