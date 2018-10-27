@@ -2,17 +2,31 @@
 
 from flask import Flask, jsonify, render_template, request, session
 from flask_s3 import FlaskS3, url_for
-import json, uuid
-import sys, os 
 from os import path
+from flask_dynamo import Dynamo
+import sys, os, json, uuid
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import validate_url
+import dynamo
+
 
 app = Flask(__name__)
 app.secret_key = b'_0fc19abebf60465c3d/'
 app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
+# works when testing locally because no access keys included in app config
+# app.config['DYNAMO_TABLES'] = [
+#     {
+#          'TableName':'lacerta',
+#          'KeySchema':[dict(AttributeName='url', KeyType='HASH')],
+#          'AttributeDefinitions':[dict(AttributeName='url', AttributeType='S')],
+#          'ProvisionedThroughput':dict(ReadCapacityUnits=5, WriteCapacityUnits=5)
+#     }
+# ]
+# db = Dynamo(app)
+# with app.app_context():
+#   db.create_all()
 
 def getCookieData():
 	with open('test_log.json') as data:
@@ -28,6 +42,8 @@ def hello(name=None):
 		session['user'] = uuid.uuid4()
 		user = session['user']
 		data = None
+	#response = dynamo.view(db)
+	#print(response, file=sys.stderr)
 	return render_template('layout.html', name=name, data=data)
 
 @app.route("/query", methods=['POST'])
@@ -49,6 +65,9 @@ def query(name=None):
 	try:
 		result = search.search(start, depth, keyword, search_type)
 		result_json = search.loadGraph(result)
+		#NOTE: currently doesn't work because it is missing aws credentials and i don't
+		#			 want to upload access keys to github where they will be scraped...
+		#dynamo.add_item(db, result_json['start_url'], json.dumps(result_json))
 		result_json_d3 = search.transformGraph(result_json)
 		return result_json_d3, 200
 	except ValueError as error:

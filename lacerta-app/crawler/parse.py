@@ -13,13 +13,9 @@ class Web:
     def __init__(self, url):
         print(url)
         if not validate_url(url):
-            raise ValueError('Invalid  URL: URL {} is invalid'.format(url))
-            return None
-        r = get_response(url)
-        if r.status_code is not 200:
-            return None
+            raise ValueError('Invalid  URL: URL {} is in wrong format. Try https://www.myurl.com'.format(url))
         self.url = self.normalize(url)
-        self.response = r
+        self.response = get_response(url)
         self.status_code = self.response.status_code
         self.urls = set()
         self.html = self.get_html()
@@ -46,7 +42,7 @@ class Web:
     #TODO: fix bug www.mysite.org AND www.mysite.org/ both return
     def get_urls_from_html(self):
         if self.html is None:
-            return
+            return None
         cleaner = Cleaner()
         cleaner.javascript = True
         cleaner.scripts = True
