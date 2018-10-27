@@ -41,7 +41,7 @@ class Web:
     ''' remove styling/javascript/scripts before parsing '''
     #TODO: fix bug www.mysite.org AND www.mysite.org/ both return
     def get_urls_from_html(self):
-        if not self.html:
+        if self.html is None:
             return None
         cleaner = Cleaner()
         cleaner.javascript = True

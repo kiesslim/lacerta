@@ -29,8 +29,8 @@ s3 = FlaskS3(app)
 @app.route("/")
 def hello(name=None):
 	print("hi")
-	response = dynamo.view(db)
-	print(response, file=sys.stderr)
+	#response = dynamo.view(db)
+	#print(response, file=sys.stderr)
 	return render_template('layout.html', name=name)
 
 @app.route("/query", methods=['POST'])

@@ -80,7 +80,6 @@ def bfs(graph, current_depth, max_depth):
                     toVisit.put(edge)
     return graph
 
-'''Note: bfs/dfs look the same, but will be different when depth handled'''
 #TODO: implement keyword
 def dfs(graph, current_depth, max_depth):
     start = graph.start_url
@@ -97,9 +96,9 @@ def dfs(graph, current_depth, max_depth):
                 random_edge = random.choice(node.edges)
                 node.edges[:] = []
                 node.edges.append(random_edge)
-            graph.add_node(node)
-            if random_edge not in graph.nodes:
-                toVisit.append(random_edge)
+                graph.add_node(node)
+                if random_edge not in graph.nodes:
+                    toVisit.append(random_edge)
     return graph
 
 '''loads node object to json format'''
