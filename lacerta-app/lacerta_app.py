@@ -32,7 +32,6 @@ def query(name=None):
 	 	return bad_request('Error: Start URL and seach depth required!')
 	if search_type not in ['BFS', 'DFS']:
 	 	return bad_request('Error: search type {} is an invalid search type'.format(search_type))
-<<<<<<< HEAD
 	#NOTE: decouple result/render
 	try:
 		result = search.search(start, depth, keyword, search_type)
@@ -41,13 +40,6 @@ def query(name=None):
 		#NOTE: commented this out as we should just be returning json data, not rendering
 		#return render_template('layout.html', name=name, result=result_json_d3)
 		return result_json_d3, 200
-=======
-	try:
-		result = search.dfs(start, depth, keyword, search_type)
-		result_json = search.loadGraph(result)
-		result_json_d3 = search.transformGraph(result_json)
-		return render_template('layout.html', name=name, result=result_json_d3)
->>>>>>> resolved conflicts
 	except ValueError as error:
 		return bad_request(str(error))
 
