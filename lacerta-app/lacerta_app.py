@@ -12,7 +12,11 @@ import dynamo
 
 
 app = Flask(__name__)
-app.secret_key = b'_0fc19abebf60465c3d/'
+text_file = open('session_credential.txt', 'r')
+secret_key_string = text_file.read()
+secret_key_bytes = bytes(secret_key_string, 'utf-8')
+app.secret_key = secret_key_bytes
+text_file.close()
 app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
 # works when testing locally because no access keys included in app config
