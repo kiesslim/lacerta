@@ -9,13 +9,9 @@ import random
 
 MAX_NODES=20
 
-#TODO: Error handling! Depth!!
+#TODO: Error handling, depth keyword
 class Node:
     def __init__(self, web):
-        if web is None:
-            return None
-        if not validate_url(web.url) or web.status_code is not 200:
-            return None
         self.url = web.url
         self.edges = list(web.urls)
         self.title = web.title
@@ -71,12 +67,13 @@ def bfs(graph, current_depth, max_depth):
     start = graph.start_url
     toVisit= Queue()
     toVisit.put(start)
+    start_node = Node(Web(start))
 
-    # TODO: remove len(g) <100 and replace with current_depth < max_depth
-    while not toVisit.empty() and len(graph.nodes) < 2:
+    while not toVisit.empty() and len(graph.nodes) <= len(start_node.edges):
         current = toVisit.get()
-        node = Node(Web(current))
-        if node is not None:
+        current_web = Web(current)
+        if current_web.status_code is 200:
+            node = Node(current_web)
             graph.add_node(node)
             for edge in node.edges:
                 if edge not in graph.nodes:
@@ -84,30 +81,25 @@ def bfs(graph, current_depth, max_depth):
     return graph
 
 '''Note: bfs/dfs look the same, but will be different when depth handled'''
-#TODO: implement depth and keyword
+#TODO: implement keyword
 def dfs(graph, current_depth, max_depth):
     start = graph.start_url
     #toVisit is a stack containing next nodes
     toVisit= []
     toVisit.append(start)
-    print(toVisit)
 
-    # TODO: remove len(g) <100 and replace with current_depth < max_depth
-    while toVisit and len(graph.nodes) < MAX_NODES:
+    while toVisit and len(graph.nodes) <= int(max_depth):
         current = toVisit.pop()
-        node = Node(Web(current))
-        if node.edges:
-            #select random edge
-            random_edge = random.choice(node.edges)
-            #remove edges
-            node.edges[:] = []
-            #add random edge
-            node.edges.append(random_edge)
-        if node is not None:
+        current_web = Web(current)
+        if current_web.status_code is 200:
+            node = Node(current_web)
+            if node.edges:
+                random_edge = random.choice(node.edges)
+                node.edges[:] = []
+                node.edges.append(random_edge)
             graph.add_node(node)
-            for edge in node.edges:
-                if edge not in graph.nodes:
-                    toVisit.append(edge)
+            if random_edge not in graph.nodes:
+                toVisit.append(random_edge)
     return graph
 
 '''loads node object to json format'''
@@ -152,7 +144,8 @@ def transformGraph(graph):
         }
         result['nodes'].append(node)
         for edge in url[1]['edges']:
-            link = {'source': url[0], 'target': edge}
-            result['links'].append(link)
+            if edge in graph['nodes']:
+                link = {'source': url[0], 'target': edge}
+                result['links'].append(link)
 
     return json.dumps(result, indent=True)
