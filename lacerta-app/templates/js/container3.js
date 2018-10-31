@@ -9,8 +9,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "dev/query",
-            // url: "/query",
+            // url: "dev/query",
+            url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -43,7 +43,6 @@ function plotCrawlerGraph(graph) {
             .attr("height", "95.44%")
             .attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-    //$.getJSON("{{ url_for('static', filename='testing_data/graph7.json') }}", function(graph) {
     var node_count = graph.nodes.length;
     var link_count = graph.links.length;
 
@@ -54,18 +53,15 @@ function plotCrawlerGraph(graph) {
 
     if (graph.type == "BFS") {
         var tick_counter = 0;
-        if (node_count >= 20) {
-            var tick_stop = 240;
-            var alpha_stop = 0.0015;
-        } else if (node_count >= 10) {
-            var tick_stop = 120;
-            var alpha_stop = 0.006;
+        if (node_count >= 10) {
+            var tick_stop = 375;
+            var alpha_stop = 0.002;
         } else if (node_count >= 5) {
-            var tick_stop = 90;
-            var alpha_stop = 0.02;
+            var tick_stop = 150;
+            var alpha_stop = 0.01;
         } else {
-            var tick_stop = 60;
-            var alpha_stop = 0.04;
+            var tick_stop = 70;
+            var alpha_stop = 0.02;
         }
 
         var graph_linknodes = [];
@@ -84,6 +80,9 @@ function plotCrawlerGraph(graph) {
 
         function ticked() {
             d3.selectAll(".crawler_graph g").remove();
+
+            nodes[0].fx = 0;
+            nodes[0].fy = 0;
 
             var link = svg.append("g")
               .attr("stroke", "#717171")
@@ -122,8 +121,9 @@ function plotCrawlerGraph(graph) {
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
                 .attr("fill", color = function(d) {return scale(d.index % 10);})
-                .attr("id", function(d) { return "graph_node" + String(d.index);});
-             
+                .attr("id", function(d) { return "graph_node" + String(d.index);})
+                .attr("jump_link", function(d) { return node_urls[d.index]; });
+
             linknode
                 .attr("cx", function(d) {
                     return (graph_linknodes[d.index - node_count].x1 +
@@ -164,8 +164,8 @@ function plotCrawlerGraph(graph) {
 
         function forceSimulation(nodes, links) {
             return d3.forceSimulation(nodes)
-              .force("link", d3.forceLink(links).id(d => d.id).distance(50))
-              .force("charge", d3.forceManyBody().strength(-50))
+              .force("link", d3.forceLink(links).id(d => d.id).distance(180))
+              .force("charge", d3.forceManyBody().strength(-120))
               .force("center", d3.forceCenter())
               .force("collision", d3.forceCollide().radius(6))
               .alphaDecay([alpha_stop]);
@@ -175,11 +175,10 @@ function plotCrawlerGraph(graph) {
         spiral_plot(graph.nodes, graph.links, node_labels, node_urls);
     }
 
-    //});
-
     function circle_node_ingress() {
         var this_circle = d3.select(this);
         var node_label_text = node_labels[Number(this_circle.attr("id").slice(10))];
+        var node_url_text = node_urls[Number(this_circle.attr("id").slice(10))];
         this_circle
             .attr("stroke", "#000000")
             .attr("stroke-width", 5)
@@ -192,7 +191,7 @@ function plotCrawlerGraph(graph) {
         var overall_container = d3.select("#container4");
         overall_container   
             .append("div")
-                .html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + "https://oregonstate.edu")
+                .html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_url_text)
                 .attr("id", "graph_node_label");
         var new_node_label = document.getElementById("graph_node_label");
         new_node_label.style.left = label_x;
@@ -210,7 +209,9 @@ function plotCrawlerGraph(graph) {
     }
 
     function circle_node_click() {
-        window.open("https://oregonstate.edu", "_blank");
+        this_circle = d3.select(this);
+        var url_link = this_circle.attr("jump_link");
+        window.open(url_link, "_blank");
     }
 
     function spiral_plot(points, lines, node_labels, node_urls) {
