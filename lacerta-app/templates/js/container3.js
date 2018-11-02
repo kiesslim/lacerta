@@ -37,18 +37,13 @@ function plotCrawlerGraph(graph) {
     var node_labels = [];
     var node_urls = [];
 
-    svg = d3.select(".crawler_graph")
-            .attr("width", "95.44%")
-            .attr("height", "95.44%")
-            .attr("viewBox", [-width / 2, -height / 2, width, height]);
-
     graph.nodes.forEach(function(e) {
         node_labels.push(e.title);
         node_urls.push(e.id);
     });
 
     if (graph.type == "BFS") {
-        force_directed_plot(width, height, scale, graph.nodes, graph.links, node_labels, node_urls)
+        force_directed_plot(width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
     } else {
         spiral_plot(width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
     }

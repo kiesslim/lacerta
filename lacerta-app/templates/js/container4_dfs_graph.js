@@ -8,6 +8,11 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     p_list = {};
     l_list = {};
 
+    var svg = d3.select(".crawler_graph")
+            .attr("width", "95.44%")
+            .attr("height", "95.44%")
+            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
     points.forEach(function(p) {
         p_list[p.id] = {};
         q = Math.sqrt(k*j++);
@@ -33,13 +38,13 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     });
 
     var link = svg.append("g")
-      .attr("stroke", "#717171")
-      .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(data_lines)
         .enter().append("line")
             .attr("class", "graph_line")
-          .attr("stroke-width", 2);
+            .attr("stroke", "#717171")
+            .attr("stroke-opacity", 0.6)
+            .attr("stroke-width", 3);
 
     var node = svg.append("g")
         .selectAll("rect")
@@ -69,10 +74,10 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     defs.append("marker")
         .attr("id", "graph_arrow")
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 25.75)
+        .attr("refX", 20)
         .attr("refY", 0)
-        .attr("markerWidth", 4.9)
-        .attr("markerHeight", 4.9)
+        .attr("markerWidth", 4.8)
+        .attr("markerHeight", 4.8)
         .attr("orient", "auto")
         .append("path")
             .attr("d", "M0,-5L10,0L0,5")
@@ -81,10 +86,16 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     d3.selectAll(".graph_line")
         .attr("marker-end", "url(#graph_arrow)")
 
-    d3.selectAll(".crawler_graph rect")
+    var final_nodes = d3.selectAll(".crawler_graph rect")
                     .on("mouseover", function() { rect_node_ingress(this, node_labels, node_urls, width, height)})
                     .on("mouseout", function() { rect_node_egress(this, scale)})
                     .on("click", rect_node_click);
+    var final_lines = d3.selectAll(".crawler_graph .graph_line");
+
+    svg.call(d3.zoom().on("zoom", function() {
+        final_nodes.attr("transform", d3.event.transform);
+        final_lines.attr("transform", d3.event.transform);
+    }));              
 }
 
 function rect_node_ingress(input, node_labels, node_urls, width, height) {
@@ -93,6 +104,14 @@ function rect_node_ingress(input, node_labels, node_urls, width, height) {
     var node_url_text = node_urls[Number(this_rect.attr("id").slice(10))];
     var current_x = Number(this_rect.attr("x"));
     var current_y = Number(this_rect.attr("y"));
+    var transform_x = 0;
+    var transform_y = 0;
+    var transform_scale = 1;
+    if (this_rect.attr("transform") != null) {
+        transform_x = Number((this_rect.attr("transform").split('(')[1]).split(',')[0]);
+        transform_y = Number(((this_rect.attr("transform").split('(')[1]).split(',')[1]).split(')')[0]);
+        transform_scale = Number((this_rect.attr("transform").split('(')[2]).split(')')[0]);
+    }
     this_rect
         .attr("stroke", "#000000")
         .attr("stroke-width", 7)
@@ -103,8 +122,8 @@ function rect_node_ingress(input, node_labels, node_urls, width, height) {
         .attr("height", 28);
     var rect_x = Number(this_rect.attr("x"));
     var rect_y = Number(this_rect.attr("y"));
-    var label_x = String(rect_x + 38 + width/2) + "px";
-    var label_y = String(rect_y + 40 + height/2) + "px";
+    var label_x = String(transform_scale * (rect_x + 38) + transform_x + width/2) + "px";
+    var label_y = String(transform_scale * (rect_y + 40) + transform_y + height/2) + "px";
     var overall_container = d3.select("#container4");
     overall_container   
         .append("div")
