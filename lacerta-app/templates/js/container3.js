@@ -24,10 +24,12 @@ function plotCrawlerGraph(graph) {
     console.log(graph);
     d3.selectAll(".crawler_graph g").remove();
     d3.selectAll(".crawler_graph defs").remove();
+    d3.selectAll(".graph_url_list div").remove();
+    d3.selectAll(".graph_url_list li").remove();
 
     // Scroll to graph
     $('html, body').animate({
-            scrollTop: $("#container4").offset().top
+            scrollTop: ($("#container4").offset().top - 88)
     }, 400);
 
     var parent_container = document.getElementById("container4");
@@ -43,8 +45,8 @@ function plotCrawlerGraph(graph) {
     });
 
     if (graph.type == "BFS") {
-        force_directed_plot(width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+        force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
     } else {
-        spiral_plot(width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+        spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
     }
 }

@@ -1,5 +1,5 @@
 
-function spiral_plot(width, height, scale, points, lines, node_labels, node_urls) {
+function spiral_plot(keyword, width, height, scale, points, lines, node_labels, node_urls) {
     // Use r(t) = kt
     var r = width/100*2;
     var k = 16;
@@ -18,6 +18,7 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
         q = Math.sqrt(k*j++);
         p_list[p.id].x = r*q*Math.cos(q);
         p_list[p.id].y = r*q*Math.sin(q);
+        p_list[p.id].has_keyword = p.has_keyword;
     });
 
     j = 0;
@@ -30,7 +31,7 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     });
 
     var data_points = Object.keys(p_list).map(function(key, i) {
-        return {"id": key, "index": i, "x": p_list[key].x, "y": p_list[key].y};
+        return {"id": key, "index": i, "x": p_list[key].x, "y": p_list[key].y, "has_keyword": p_list[key].has_keyword};
     });
 
     var data_lines = Object.keys(l_list).map(function(key) {
@@ -83,13 +84,57 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
             .attr("d", "M0,-5L10,0L0,5")
             .attr("class","graph_arrowhead");
 
+    defs.append("marker")
+        .attr("id", "graph_asterisk")
+        .attr("viewBox", "0 0 10 10")
+        .attr("refX", -2.9)
+        .attr("refY", -2.8)
+        .attr("markerWidth", 14)
+        .attr("markerHeight", 14)
+        .attr("orient", 0)
+        .attr("fill", "white")
+        .append("path")
+            .attr("d", "M5,0L4,0L4,3.3L1.1,1.7L0.2,3.4L3,5L0.2,6.6L1.1,8.4L4,6.7L4,10L6,10L6,6.7L8.9,8.4L9.8,6.6L7,5L9.8,3.4L8.9,1.7L6,3.3L6,0")
+            .attr("class","graph_asterisk_path");
+
     d3.selectAll(".graph_line")
         .attr("marker-end", "url(#graph_arrow)")
 
-    var final_nodes = d3.selectAll(".crawler_graph rect")
-                    .on("mouseover", function() { rect_node_ingress(this, node_labels, node_urls, width, height)})
-                    .on("mouseout", function() { rect_node_egress(this, scale)})
-                    .on("click", rect_node_click);
+    var supplemental_list = d3.select(".graph_url_list")
+    supplemental_list.append("div")
+                        .text("Supplemental List View")
+                        .attr("class", "graph_url_list_title")
+    supplemental_list.append("div")
+                        .text("(Hover Over Nodes In Graph For More Information)")
+                        .attr("class", "graph_url_list_title");
+
+    var final_nodes = d3.selectAll(".crawler_graph rect");
+    final_nodes.on("mouseover", function(item) { rect_node_ingress(this, node_labels, node_urls, width, height, item["has_keyword"], keyword)})
+                .on("mouseout", function() { rect_node_egress(this, scale)})
+                .on("click", rect_node_click)
+                .each( function(item) {
+                        if (item["has_keyword"]) {
+                            supplemental_list.append("div")
+                                                .text("(Keyword Was Found)")
+                                                .attr("class", "graph_url_list_title");
+                            this_rect = d3.select(this);
+                            this_rect_parent = d3.select(this.parentNode);
+                            this_rect_parent.append("line")
+                                    .attr("class", "graph_line")
+                                    .attr("id", "graph_asterisk_line")
+                                    .attr("x1", this_rect.attr("x"))
+                                    .attr("y1", this_rect.attr("y"))
+                                    .attr("x2", this_rect.attr("x"))
+                                    .attr("y2", this_rect.attr("y"))
+                                    .attr("marker-end", "url(#graph_asterisk)")
+                                    .attr("stroke-width", 1)
+                                    .attr("stroke", "white")
+                        }
+                })
+                .each( function(item) {
+                    dfs_add_supplemental_url(this, supplemental_list, scale, item["has_keyword"]);
+                });
+
     var final_lines = d3.selectAll(".crawler_graph .graph_line");
 
     svg.call(d3.zoom().on("zoom", function() {
@@ -98,7 +143,7 @@ function spiral_plot(width, height, scale, points, lines, node_labels, node_urls
     }));              
 }
 
-function rect_node_ingress(input, node_labels, node_urls, width, height) {
+function rect_node_ingress(input, node_labels, node_urls, width, height, has_keyword, keyword) {
     var this_rect = d3.select(input);
     var node_label_text = node_labels[Number(this_rect.attr("id").slice(10))];
     var node_url_text = node_urls[Number(this_rect.attr("id").slice(10))];
@@ -125,10 +170,17 @@ function rect_node_ingress(input, node_labels, node_urls, width, height) {
     var label_x = String(transform_scale * (rect_x + 38) + transform_x + width/2) + "px";
     var label_y = String(transform_scale * (rect_y + 40) + transform_y + height/2) + "px";
     var overall_container = d3.select("#container4");
-    overall_container   
-        .append("div")
-            .html("<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_url_text)
-            .attr("id", "graph_node_label");
+    var hover_text = "";
+    if (Number(this_rect.attr("id").slice(10)) == 0) {
+        hover_text += "<b><i>Start Website</i></b><br/>";
+    }
+    if (has_keyword) {
+        hover_text += "<b><i>Has Keyword: </b>" + keyword + "</i><br/>";
+    }
+    hover_text += "<b>Title: </b>" + node_label_text + "<br/>" + "<b>URL: </b>" + node_url_text;
+    overall_container.append("div")
+                        .html(hover_text)
+                        .attr("id", "graph_node_label");
     var new_node_label = document.getElementById("graph_node_label");
     new_node_label.style.left = label_x;
     new_node_label.style.top = label_y;
@@ -153,5 +205,61 @@ function rect_node_egress(input, scale) {
 function rect_node_click() {
     this_rect = d3.select(this);
     var url_link = this_rect.attr("jump_link");
+    window.open(url_link, "_blank");
+}
+
+function dfs_add_supplemental_url(input, url_list, scale, has_keyword) {
+    var this_rect = d3.select(input);
+    var hover_text = "";
+    if (Number(this_rect.attr("id").slice(10)) == 0) {
+        hover_text += "<i>(Start Website)</i> ";
+    }
+    if (has_keyword) {
+        hover_text += "<i>(Has Keyword)</i> ";
+    }
+    hover_text += this_rect.attr("jump_link");
+    url_list.append("li")
+        .html(hover_text)
+        .attr("class", "graph_url_list_item")
+        .on("mouseover", function() { dfs_url_list_ingress(this, this_rect);})
+        .on("mouseout", function() { dfs_url_list_egress(this, this_rect, scale);})
+        .on("click", function() { dfs_url_list_click(this, this_rect);});
+}
+
+function dfs_url_list_ingress(list_input, rect_input) {
+    list_input.style.color = "blue";
+    list_input.style.textDecoration = "underline";
+
+    var current_x = Number(rect_input.attr("x"));
+    var current_y = Number(rect_input.attr("y"));
+    rect_input
+        .attr("stroke", "#000000")
+        .attr("stroke-width", 7)
+        .attr("fill", "white")
+        .attr("x", current_x - 3)
+        .attr("y", current_y - 3)
+        .attr("width", 28)
+        .attr("height", 28);
+}
+
+function dfs_url_list_egress(list_input, rect_input, scale) {
+    list_input.style.color = "black";
+    list_input.style.textDecoration = "none";
+
+    color = scale(Number(rect_input.attr("id").slice(10)) % 10);
+    var current_x = Number(rect_input.attr("x"));
+    var current_y = Number(rect_input.attr("y"));
+    rect_input
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 3)
+        .attr("fill", color)
+        .attr("x", current_x + 3)
+        .attr("y", current_y + 3)
+        .attr("width", 22)
+        .attr("height", 22);
+}
+
+function dfs_url_list_click(list_input, rect_input) {
+    var url_link = rect_input.attr("jump_link");
     window.open(url_link, "_blank");
 }
