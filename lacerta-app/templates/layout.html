@@ -10,8 +10,8 @@
 {% endblock %}
 
 {% block content %}
+{% include 'container0.html' %}
 <div class="container-fluid">
-	{% include 'container0.html' %}
 	<div class="row">
 	   	{% include 'container2.html' %}
 	    <div class="col">
@@ -33,8 +33,8 @@
 {% block javascript %}
 	<script type="text/javascript">
 		{% include "js/container0.js" %}
-	</script>
-	<script type="text/javascript">
 		{% include "js/container3.js" %}
+		{% include "js/container4_bfs_graph.js" %}
+		{% include "js/container4_dfs_graph.js" %}
 	</script>
 {% endblock %}
