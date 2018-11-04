@@ -52,7 +52,6 @@ class Web:
         if self.html is None:
             return None
         #TODO: cleaning HTML removes the title tags, so must get title before cleaning html
-        print(self.response.text)
         return self.html.findtext('.//title')
 
     #Note: get_text doesn't address broken html, i.e. although style/js removed from html,
