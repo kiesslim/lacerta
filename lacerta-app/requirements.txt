@@ -1,4 +1,7 @@
 flask
+flask_dynamo
+flask-s3
 zappa
 gunicorn
 gevent
+lxml
