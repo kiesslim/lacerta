@@ -11,11 +11,16 @@ MAX_NODES=20
 
 #TODO: Error handling, depth keyword
 class Node:
-    def __init__(self, web):
+    def __init__(self, web, keyword):
         self.url = web.url
         self.edges = list(web.urls)
         self.title = web.title
-        self.has_keyword = False
+        self.has_keyword = self.contains_keyword(web, keyword)
+
+    def contains_keyword(self, web, keyword):
+        if keyword and keyword in web.text:
+            return True
+        return False
 
     def __str__(self):
         if self is None:
@@ -51,37 +56,48 @@ class Graph:
 
 '''search validates form data, and then calls appropriate search function'''
 def search(start_url, max_depth, keyword, search_type):
+    #validate depth
     g = Graph(start_url, max_depth, keyword, search_type)
     if not validate_url(start_url):
         raise ValueError('Invalid Start URL: {}'.format(start_url))
+    if not int(max_depth) or int(max_depth) < 0:
+        raise ValueError('Error: max_depth must be an integer and >0.')
+
+    g = Graph(start_url, max_depth, keyword, search_type)
     if search_type == 'BFS':
-        return bfs(g, 0, max_depth)
+        if int(max_depth) > 3:
+            raise ValueError('Error: Invalid depth. max_depth for BFS is 3, or less')
+        return bfs(g, keyword, 0, max_depth)
     elif search_type == 'DFS':
-        return dfs(g, 0, max_depth)
+        if int(max_depth) > 50:
+            raise ValueError('Error: Invalid depth. max_depth for DFS must be 50 or less.')
+        return dfs(g, keyword, max_depth)
     else:
         raise ValueError('Invalid Search Type: Specify BFS or DFS')
 
 '''Note: bfs/dfs look the same, but will be different when depth handled'''
-#TODO: implement depth and keyword
-def bfs(graph, current_depth, max_depth):
+#TODO: implement depth... recursive?!
+def bfs(graph, keyword, current_depth, max_depth):
     start = graph.start_url
     toVisit= Queue()
     toVisit.put(start)
-    start_node = Node(Web(start))
+    #TODO: find better solution!
+    start_node = Node(Web(start), keyword)
 
     while not toVisit.empty() and len(graph.nodes) <= len(start_node.edges):
         current = toVisit.get()
         current_web = Web(current)
         if current_web.status_code is 200:
-            node = Node(current_web)
+            node = Node(current_web, keyword)
             graph.add_node(node)
+            if node.has_keyword:
+                break
             for edge in node.edges:
                 if edge not in graph.nodes:
                     toVisit.put(edge)
     return graph
 
-#TODO: implement keyword
-def dfs(graph, current_depth, max_depth):
+def dfs(graph, keyword, max_depth):
     start = graph.start_url
     #toVisit is a stack containing next nodes
     toVisit= []
@@ -91,12 +107,15 @@ def dfs(graph, current_depth, max_depth):
         current = toVisit.pop()
         current_web = Web(current)
         if current_web.status_code is 200:
-            node = Node(current_web)
+            node = Node(current_web, keyword)
             if node.edges:
                 random_edge = random.choice(node.edges)
+                #remove all edges, and add randomly selected edge
                 node.edges[:] = []
                 node.edges.append(random_edge)
                 graph.add_node(node)
+                if node.has_keyword:
+                    break
                 if random_edge not in graph.nodes:
                     toVisit.append(random_edge)
     return graph

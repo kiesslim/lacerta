@@ -7,6 +7,7 @@ import sys, os, json
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import validate_url
+import traceback
 import dynamo
 
 
@@ -48,6 +49,8 @@ def query(name=None):
 	 	return bad_request('Error: Start URL and seach depth required!')
 	if search_type not in ['BFS', 'DFS']:
 	 	return bad_request('Error: search type {} is an invalid search type'.format(search_type))
+	if not int(depth) or int(depth) < 0:
+		return bad_request('Error: Invalid depth. Please specify a positive integer')
 	#NOTE: decouple result/render
 	try:
 		result = search.search(start, depth, keyword, search_type)
@@ -60,6 +63,8 @@ def query(name=None):
 		#return render_template('layout.html', name=name, result=result_json_d3)
 		return result_json_d3, 200
 	except ValueError as error:
+		tb = traceback.format_exc()
+		print(tb)
 		return bad_request(str(error))
 
 #TODO: add additional errorhandlers

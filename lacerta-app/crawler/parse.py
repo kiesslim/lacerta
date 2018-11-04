@@ -8,7 +8,7 @@ import requests
 import sys
 from urllib.parse import urldefrag, urlparse, urlsplit, urljoin
 
-#TODO: error handling & get_text from html!
+#TODO: error handling & endcoding/decoding
 class Web:
     def __init__(self, url):
         print(url)
@@ -21,6 +21,7 @@ class Web:
         self.html = self.get_html()
         self.get_urls_from_html()
         self.title = self.get_title_from_html()
+        self.text = self.get_text()
 
     # TODO: remove query strings!!
     def normalize(self, url):
@@ -34,8 +35,8 @@ class Web:
         return urljoin(self.url, url)
 
     def get_html(self):
-        if self.status_code is 200 and self.response.content:
-            return html.fromstring(self.response.content)
+        if self.status_code is 200 and self.response.text:
+            return html.fromstring(self.response.text)
         return None
 
     ''' remove styling/javascript/scripts before parsing '''
@@ -43,23 +44,40 @@ class Web:
     def get_urls_from_html(self):
         if self.html is None:
             return None
-        cleaner = Cleaner()
-        cleaner.javascript = True
-        cleaner.scripts = True
-        cleaner.style = True
-        cleaned = html.fromstring(cleaner.clean_html(self.response.content))
+        cleaned = self.clean_html()
         raw_urls = cleaned.xpath('//a/@href')
-        #TODO: validate_urls before adding?
         return shuffle([self.urls.add(self.absolute_url(self.normalize(url))) for url in raw_urls])
 
     def get_title_from_html(self):
         if self.html is None:
             return None
+        #TODO: cleaning HTML removes the title tags, so must get title before cleaning html
+        print(self.response.text)
         return self.html.findtext('.//title')
 
-    # TODO:
+    #Note: get_text doesn't address broken html, i.e. although style/js removed from html,
+    # it will still return .css/js when there are missing tags in the html. lxml.html.fromstring
+    # is supposed to fix the broken html, but it doesn't catch everything
     def get_text(self):
-        return
+        cleaned = self.clean_html()
+        #print(cleaned.xpath('//text()'))
+        #print(etree.XPath('//text()')(cleaned))
+        return cleaned.text_content()
+
+    def clean_html(self):
+        if len(self.response.text):
+            cleaner = Cleaner()
+            cleaner.javascript = True
+            cleaner.scripts = True
+            cleaner.stye = True
+            cleaner.inline_style = True
+            cleaner.comments = True
+            cleaner.meta = True
+            cleaner.links = True
+            cleaner.processing_instructions = True
+            cleaner.embedded = True
+            cleaner.form = True
+            return html.fromstring(cleaner.clean_html(self.response.text))
 
 #TODO:add error handling. raise ValueError or exception?
 # note: this may not be needed. Invalid urls could just be represented as
