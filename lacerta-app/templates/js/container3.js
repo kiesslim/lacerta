@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
 	$('#new_query_button').click( function (e) {
-        e.preventDefault();
+	    e.preventDefault();
 		var package = {};
 		package["start_url"] = $("#start_url").val();
 		package["depth"] = $("#depth").val();
@@ -14,6 +14,18 @@ $(document).ready(function() {
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
+                // var container2_data = {
+                //     "start_url": package["start_url"],
+                //     "depth": package["depth"],
+                //     "search_type": package["search_type"],
+                //     "keyword": package["keyword"],
+                //     "crawl_data": graph["nodes"]
+                // };
+                // $.ajax({
+                //     type: "POST",
+                //     url: "/",
+                //     data: container2_data
+                // });
                 plotCrawlerGraph(graph);
             }
         });

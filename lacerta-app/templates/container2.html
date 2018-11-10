@@ -1,23 +1,26 @@
 <div class="col col-container2" id="container2">
-
-<ul class="list-unstyled">
-    <!-- <li class=""><h6>User: {{user}}</h6></li> -->
-    <li class=""><h5>Log Data</h5></li>
-    <li class=""><h4>Origin: {{data.origin}}</h4></li>
-    <li class=""><h6>Crawl Type: {{data.searchType}}</h6></li>
-    <li class=""><h6>Limit: {{data.limit}}</h6></li>
-    <ul class="list-unstyled">
-      {% for row in data.data %}
-      <li>Dive {{loop.index}}</li>
-        <ul>
-          {% for obj in row %}
-            <li class="">
-              <a href="{{obj.url}}">{{obj.title}}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% endfor %}
+  <div class="">
+    <ul class="crawl_data list-unstyled">
+      <li class=""><h3>Crawl Log</h3></li>
+{#      {% if container2_data != None %}#}
+{#        <li class=""><h5>Start URL: {{container2_data.start_url}}</h5></li>#}
+{#        <li class=""><h6>Search Type: {{container2_data.search_type}}</h6></li>#}
+{#        <li class=""><h6>Depth: {{container2_data.depth}}</h6></li>#}
+{#        <li class=""><h6>Stop Keyword: "{{container2_data.keyword}}"</h6></li>#}
+{#        <li>Nodes:</li>#}
+{#        {% for node in container2_data.crawl_data %}#}
+{#          <ul class="list-group list-group-flush">#}
+{#            <li class="list-group-item">Title: <a href="{{ node.id }}">"{{ node.title }}"</a></li>#}
+{#            <li class="list-group-item">URL: <a href="{{ node.id }}">{{ node.id }}</a></li>#}
+{#            <li class="list-group-item">Has Keyword: {{ node.has_keyword }}</li>#}
+{#          </ul>#}
+{#        {% endfor %}#}
+{#      {% else %}#}
+{#        <li class=""><h6>Please use the form to the right to start crawling</h6></li>#}
+{#      {% endif %}#}
     </ul>
-  </ul>
-
+  </div>
+  <div class="">
+    <ul class="graph_url_list"></ul>
+  </div>
 </div>
