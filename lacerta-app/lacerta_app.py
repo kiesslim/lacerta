@@ -30,7 +30,7 @@ def render():
 	return render_template('layout.html', container1_data=container1_data, container2_data=container2_data)
 
 
-@app.route("/dev/query", methods=['GET', 'POST'])
+@app.route("/query", methods=['GET', 'POST'])
 def query():
 	if request.method == 'GET':
 		return redirect(url_for('render'))
