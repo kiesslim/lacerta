@@ -16,46 +16,39 @@ function force_directed_plot(keyword, width, height, scale, points, lines) {
     var point_helper = {};
     points.forEach( function(point) { point_helper[point.id] = point; });
     var k = 0;
-    var m = 0;
     lines.forEach( function(link) {
-        if (m < 300) {
-            if (link.source != link.target) {
-                if (node_indexer[link.source] == null) {
-                    node_indexer[link.source] = {"id": k, "targets": {}};
-                    visual_points.push({"id": k, "title": point_helper[link.source].title, 
-                            "url": point_helper[link.source].id, "has_keyword": point_helper[link.source].has_keyword, "source_origin": link.source});
-                    k++;
-                } 
+        if (link.source != link.target) {
+            if (node_indexer[link.source] == null) {
+                node_indexer[link.source] = {"id": k, "targets": {}};
+                visual_points.push({"id": k, "title": point_helper[link.source].title, 
+                        "url": point_helper[link.source].id, "has_keyword": point_helper[link.source].has_keyword, "source_origin": link.source});
+                k++;
+            } 
 
-                if (node_indexer[link.target] != null) {
-                    if (node_indexer[link.target].targets[link.source] != null && visual_points[node_indexer[link.source].id].source_origin == link.target) {
-                        visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.target].id});
-                    } else {
-                        node_indexer[link.source].targets[link.target] = {"id": k};
-                        visual_points.push({"id": k, "title": point_helper[link.target].title, 
-                                "url": point_helper[link.target].id, "has_keyword": point_helper[link.target].has_keyword, "source_origin": link.source});
-                        k++;
-
-                        visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});  
-                    }
+            if (node_indexer[link.target] != null) {
+                if (node_indexer[link.target].targets[link.source] != null && visual_points[node_indexer[link.source].id].source_origin == link.target) {
+                    visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.target].id});
                 } else {
                     node_indexer[link.source].targets[link.target] = {"id": k};
                     visual_points.push({"id": k, "title": point_helper[link.target].title, 
                             "url": point_helper[link.target].id, "has_keyword": point_helper[link.target].has_keyword, "source_origin": link.source});
                     k++;
 
-                    node_indexer[link.target] = {"id": node_indexer[link.source].targets[link.target].id, "targets": {}};
-
                     visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});  
                 }
+            } else {
+                node_indexer[link.source].targets[link.target] = {"id": k};
+                visual_points.push({"id": k, "title": point_helper[link.target].title, 
+                        "url": point_helper[link.target].id, "has_keyword": point_helper[link.target].has_keyword, "source_origin": link.source});
+                k++;
 
+                node_indexer[link.target] = {"id": node_indexer[link.source].targets[link.target].id, "targets": {}};
+
+                visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});  
             }
-            m++;  
-        }      
+
+        } 
     });
-    console.log(visual_points);
-    console.log(visual_lines);
-    console.log(node_indexer);
 
     var visual_urls_helper = {};
     var n = 0;
@@ -278,8 +271,8 @@ function circle_node_ingress(input, width, height, depth_limit, keyword) {
         .attr("r", 12);
     var circle_cx = Number(this_circle.attr("cx"));
     var circle_cy = Number(this_circle.attr("cy"));
-    var label_x = String((transform_scale * (circle_cx + 23) + transform_cx + width/2)/depth_limit) + "px";
-    var label_y = String((transform_scale * (circle_cy + 30) + transform_cy + height/2)/depth_limit) + "px";
+    var label_x = String((transform_scale * (circle_cx + 30) + transform_cx + width/2)/depth_limit) + "px";
+    var label_y = String((transform_scale * (circle_cy - 90) + transform_cy + height/2)/depth_limit) + "px";
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (this_circle.attr("index") == 0) {

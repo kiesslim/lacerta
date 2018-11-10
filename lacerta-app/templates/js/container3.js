@@ -9,8 +9,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            // url: "dev/query",
-            url: "/query",
+            url: "dev/query",
+            // url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -41,7 +41,7 @@ function plotCrawlerGraph(graph) {
 
     // Scroll to graph
     $('html, body').animate({
-            scrollTop: ($("#container4").offset().top - 88)
+            scrollTop: ($("#container4").offset().top - 82)
     }, 400);
 
     var parent_container = document.getElementById("container4");
