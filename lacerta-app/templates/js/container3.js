@@ -9,8 +9,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "dev/query",
-            // url: "/query",
+            // url: "dev/query",
+            url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -56,9 +56,11 @@ function plotCrawlerGraph(graph) {
         node_urls.push(e.id);
     });
 
-    if (graph.type == "BFS") {
-        force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
-    } else {
-        spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+    if (graph.nodes.length > 1) {
+        if (graph.type == "BFS") {
+            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links);
+        } else {
+            spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+        }
     }
 }

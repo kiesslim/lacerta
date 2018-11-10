@@ -8,6 +8,12 @@ function spiral_plot(keyword, width, height, scale, points, lines, node_labels, 
     p_list = {};
     l_list = {};
 
+    var node_count = points.length;
+    var link_count = lines.length;
+    if (node_count == link_count) {
+        lines = lines.slice(0, link_count - 1);
+    }
+
     var svg = d3.select(".crawler_graph")
             .attr("width", "95.44%")
             .attr("height", "95.44%")
