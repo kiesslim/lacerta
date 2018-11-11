@@ -1,22 +1,23 @@
 #!/usr/bin/python3.6
 
-from lxml import etree
-from lxml import html
+import logging
+from lxml import etree, html
 from lxml.html.clean import Cleaner
 from random import shuffle
 import requests
-import sys
 from urllib.parse import urldefrag, urlparse, urlsplit, urljoin
+
 
 #TODO: error handling & endcoding/decoding
 class Web:
     def __init__(self, url):
         print(url)
         if not validate_url(url):
-            raise ValueError('Invalid  URL: URL {} is in wrong format. Try https://www.myurl.com'.format(url))
+            #TODO fix this
+            return None
         self.url = self.normalize(url)
-        self.response = get_response(url)
-        self.status_code = self.response.status_code
+        self.response = self.get_response(url)
+        self.status_code = self.get_status()
         self.urls = set()
         self.html = self.get_html()
         self.get_urls_from_html()
@@ -51,16 +52,17 @@ class Web:
     def get_title_from_html(self):
         if self.html is None:
             return None
-        #TODO: cleaning HTML removes the title tags, so must get title before cleaning html
         return self.html.findtext('.//title')
 
     #Note: get_text doesn't address broken html, i.e. although style/js removed from html,
     # it will still return .css/js when there are missing tags in the html. lxml.html.fromstring
     # is supposed to fix the broken html, but it doesn't catch everything
     def get_text(self):
+        if self.html is None:
+            return None
         cleaned = self.clean_html()
-        #print(cleaned.xpath('//text()'))
-        #print(etree.XPath('//text()')(cleaned))
+        if cleaned is None:
+            return None
         return cleaned.text_content()
 
     def clean_html(self):
@@ -78,12 +80,27 @@ class Web:
             cleaner.form = True
             return html.fromstring(cleaner.clean_html(self.response.text))
 
+    #source: https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
+    #source: http://flask.pocoo.org/docs/0.12/patterns/apierrors/
+    #source: http://docs.python-requests.org/en/master/user/quickstart/
+    def get_response(self, url):
+        try:
+            response = requests.get(url)
+            self.status_code = response.status_code
+            return response
+        except requests.exceptions.HTTPError as httpErr:
+            logging.error('HTTP Error: {}'.format(httpErr))
+        except Exception as e:
+            logging.error('Server Error: {}'.format(e))
+
+    def get_status(self):
+        if self.response:
+            return self.response.status_code
+        return '500'
+
 #TODO:add error handling. raise ValueError or exception?
 # note: this may not be needed. Invalid urls could just be represented as
 # dead-end nodes
 def validate_url(url):
     components = urlparse(url)
     return components.scheme and components.netloc
-
-def get_response(url):
-    return requests.get(url)

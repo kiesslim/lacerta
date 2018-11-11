@@ -2,6 +2,7 @@
 
 from flask import Flask, jsonify, render_template, request, redirect, make_response, url_for
 from flask_s3 import FlaskS3
+import logging
 import sys, os, json, traceback
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
@@ -35,7 +36,7 @@ def query():
 	if request.method == 'GET':
 		return redirect(url_for('render'))
 	else:
-		print(request.form)
+		logging.info(request.form)
 		start = request.form["start_url"]
 		depth = request.form["depth"]
 		keyword = request.form["keyword"]
@@ -65,8 +66,12 @@ def query():
 			return response
 		except ValueError as error:
 			tb = traceback.format_exc()
-			print(tb)
+			logging.error(tb)
 			return bad_request(str(error))
+		except Exception as e:
+			tb = traceback.format_exc()
+			logging.error(tb)
+			return server_error(str(e))
 
 
 #TODO: add additional errorhandlers
@@ -78,6 +83,16 @@ def bad_request(error_message):
 	}
 	response = jsonify(message)
 	response.status_code = 400
+	return response
+
+@app.errorhandler(500)
+def server_error(error_message):
+	message = {
+		'status' : 500,
+		'message' : str(error_message)
+	}
+	response = jsonify(message)
+	response.status_code = 500
 	return response
 
 if __name__ == '__main__':

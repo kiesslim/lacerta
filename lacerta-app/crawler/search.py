@@ -2,25 +2,22 @@
 
 from flask import jsonify
 import json
+import logging
 from parse import Web, validate_url
 from queue import Queue
 import random
+import requests
 
 
-MAX_NODES=20
+MAX_NODES=50
 
 #TODO: Error handling, depth keyword
 class Node:
-    def __init__(self, web, keyword):
+    def __init__(self, web):
         self.url = web.url
         self.edges = list(web.urls)
         self.title = web.title
-        self.has_keyword = self.contains_keyword(web, keyword)
-
-    def contains_keyword(self, web, keyword):
-        if keyword and keyword in web.text:
-            return True
-        return False
+        self.has_keyword = False
 
     def __str__(self):
         if self is None:
@@ -29,20 +26,20 @@ class Node:
         edges_str = ','.join(self.edges)
         return '{} {}'.format(node_str, edges_str)
 
-# graph = {
-#     'start_url' : start,
-#     'search_type' : 'bfs',
-#     'depth' : depth,
-#     'keyword' : keyword,
-#     'nodes' : {
-#         'url1': {
-#             'url' : 'url1',
-#             'title' : 'TITLE',
-#             'has_keyword' : False ,
-#             'edges' : ['url2','url3']
-#         }
-#     }
-# }
+''' graph = {
+    'start_url' : start,
+    'search_type' : 'bfs',
+    'depth' : depth,
+    'keyword' : keyword,
+    'nodes' : {
+        'url1': {
+            'url' : 'url1',
+            'title' : 'TITLE',
+            'has_keyword' : False ,
+            'edges' : ['url2','url3']
+        }
+    }
+}'''
 class Graph:
     def __init__(self, start, depth, keyword, search_type):
         self.start_url = start
@@ -56,46 +53,64 @@ class Graph:
 
 '''search validates form data, and then calls appropriate search function'''
 def search(start_url, max_depth, keyword, search_type):
-    #validate depth
-    g = Graph(start_url, max_depth, keyword, search_type)
+
+    #validate url format
     if not validate_url(start_url):
         raise ValueError('Invalid Start URL: {}'.format(start_url))
+
+    #validate url response
+    r = requests.get(start_url)
+    if r.status_code is not 200:
+        r.raise_for_status()
+
     if not int(max_depth) or int(max_depth) < 0:
-        raise ValueError('Error: max_depth must be an integer and >0.')
+        raise ValueError('Error: max_depth must be a positive integer.')
 
     g = Graph(start_url, max_depth, keyword, search_type)
     if search_type == 'BFS':
         if int(max_depth) > 3:
             raise ValueError('Error: Invalid depth. max_depth for BFS is 3, or less')
-        return bfs(g, keyword, 0, max_depth)
+        toVisit = []
+        toVisit.append(g.start_url)
+        return bfs(g, toVisit, keyword, 0, int(max_depth))
     elif search_type == 'DFS':
         if int(max_depth) > 50:
             raise ValueError('Error: Invalid depth. max_depth for DFS must be 50 or less.')
-        return dfs(g, keyword, max_depth)
+        return dfs(g,keyword, int(max_depth))
     else:
         raise ValueError('Invalid Search Type: Specify BFS or DFS')
 
-'''Note: bfs/dfs look the same, but will be different when depth handled'''
-#TODO: implement depth... recursive?!
-def bfs(graph, keyword, current_depth, max_depth):
-    start = graph.start_url
-    toVisit= Queue()
-    toVisit.put(start)
-    #TODO: find better solution!
-    start_node = Node(Web(start), keyword)
 
-    while not toVisit.empty() and len(graph.nodes) <= len(start_node.edges):
-        current = toVisit.get()
-        current_web = Web(current)
-        if current_web.status_code is 200:
-            node = Node(current_web, keyword)
+def bfs(graph, toVisit, keyword, current_depth, max_depth):
+    print('current depth = {}'.format(current_depth))
+    if current_depth > max_depth:
+        print('reached max depth. returning')
+        return graph
+    if not toVisit:
+        print('toVisit empty. returning')
+        return graph
+    next_level = []
+    for url in toVisit:
+        web = Web(url)
+        if web and web.status_code is 200:
+            node = Node(web)
+            if current_depth == max_depth:
+                #strip out all edges for nodes that won't be visited
+                node.edges[:] = []
+            if contains_keyword(web.text, keyword):
+                node.has_keyword = True
+                graph.add_node(node)
+                return graph
             graph.add_node(node)
-            if node.has_keyword:
-                break
-            for edge in node.edges:
-                if edge not in graph.nodes:
-                    toVisit.put(edge)
-    return graph
+            print(len(graph.nodes))
+            if len(graph.nodes) >= MAX_NODES:
+                print('Maximum number of nodes reached')
+                return graph
+            for neighbor in node.edges:
+                if neighbor not in graph.nodes:
+                    next_level.append(neighbor)
+    return bfs(graph, next_level, keyword, current_depth+1, max_depth)
+
 
 def dfs(graph, keyword, max_depth):
     start = graph.start_url
@@ -104,21 +119,30 @@ def dfs(graph, keyword, max_depth):
     toVisit.append(start)
 
     while toVisit and len(graph.nodes) <= int(max_depth):
-        current = toVisit.pop()
-        current_web = Web(current)
-        if current_web.status_code is 200:
-            node = Node(current_web, keyword)
+        current_url = toVisit.pop()
+        web = Web(current_url)
+        if web and web.status_code is 200:
+            node = Node(web)
             if node.edges:
-                random_edge = random.choice(node.edges)
+                random_neighbor = random.choice(node.edges)
                 #remove all edges, and add randomly selected edge
                 node.edges[:] = []
-                node.edges.append(random_edge)
+                node.edges.append(random_neighbor)
+                if contains_keyword(web.text, keyword):
+                    node.has_keyword = True
+                    graph.add_node(node)
+                    return graph
                 graph.add_node(node)
-                if node.has_keyword:
-                    break
-                if random_edge not in graph.nodes:
-                    toVisit.append(random_edge)
+                if random_neighbor not in graph.nodes:
+                    toVisit.append(random_neighbor)
     return graph
+
+def contains_keyword(text, keyword):
+    if not text or not keyword:
+        return False
+    if keyword in text:
+        return True
+    return False
 
 '''loads node object to json format'''
 def loadNode(n):
