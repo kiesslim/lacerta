@@ -1,7 +1,12 @@
 
-function force_directed_plot(keyword, width, height, scale, points, lines) {
+function force_directed_plot(keyword, width, height, scale, points, lines, graph_depth) {
     var tick_counter = 0;
-    var depth_limit = 1.5;
+    var depth_limit = 1;
+    if (graph_depth == 2) {
+        depth_limit = 4;
+    } else if (graph_depth == 3) {
+        depth_limit = 9;
+    }
     width = width * depth_limit;
     height = height * depth_limit;
 
@@ -69,18 +74,20 @@ function force_directed_plot(keyword, width, height, scale, points, lines) {
     var node_count = visual_points.length;
     var link_count = visual_lines.length;
 
-    if (node_count >= 10) {
-        var tick_stop = 300;
-        var alpha_stop = 0.002;
-    } else if (node_count >= 5) {
-        var tick_stop = 150;
-        var alpha_stop = 0.01;
-    } else {
-        var tick_stop = 70;
-        var alpha_stop = 0.02;
+    var tick_stop = 50;
+    var alpha_stop = 0.02;
+    if (graph_depth == 1) {
+        tick_stop = 100;
+        alpha_stop = 0.05;
+    } else if (graph_depth == 2) {
+        tick_stop = 225;
+        alpha_stop = 0.015;
+    } else if (graph_depth == 3) {
+        tick_stop = 275;
+        alpha_stop = 0.010;
     }
 
-    var ideal_distance = 120;
+    var ideal_distance = 110;
 
     var graph_linknodes = [];
     var j = 0;
@@ -106,7 +113,13 @@ function force_directed_plot(keyword, width, height, scale, points, lines) {
             .enter().append("line")
                 .attr("class", "graph_line")
                 .attr("stroke", "#717171")
-                .attr("stroke-opacity", 0.6)
+                .attr("stroke-opacity", function() {
+                    if (graph_depth == 3) {
+                        return 0.8;
+                    } else {
+                        return 0.6;
+                    }
+                })
                 .attr("stroke-width", 3);
 
         var node = svg.append("g")
@@ -247,7 +260,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines) {
     function forceSimulation(nodes, links) {
         return d3.forceSimulation(nodes)
           .force("link", d3.forceLink(links).id(d => d.id).distance(ideal_distance))
-          .force("charge", d3.forceManyBody().strength(-90))
+          .force("charge", d3.forceManyBody().strength(-75))
           .force("center", d3.forceCenter())
           .force("collision", d3.forceCollide().radius(6))
           .alphaDecay([alpha_stop]);
@@ -369,4 +382,143 @@ function bfs_url_list_egress(list_input, circle_input, scale) {
 
 function bfs_url_list_click(list_input, jump_link) {
     window.open(jump_link, "_blank");
+}
+
+function force_directed_plot_one(keyword, width, height, scale, points) {
+    var depth_limit = 1;
+    width = width * depth_limit;
+    height = height * depth_limit;
+
+    var svg = d3.select(".crawler_graph")
+            .attr("width", "95.44%")
+            .attr("height", "95.44%")
+            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+   
+    const nodes = points.map(d => Object.create(d));
+   
+    d3.selectAll(".crawler_graph g").remove();
+
+    var node = svg.append("g")
+        .selectAll("circle")
+        .data(nodes)
+        .enter().append("circle")
+          .attr("stroke", "#fff")
+          .attr("stroke-width", 3)
+          .attr("r", 10);
+
+    node
+        .attr("cx", 0)
+        .attr("cy", 0)
+        .attr("fill", color = function(d) {return scale(0 % 10);})
+        .attr("id", function(d) { return "graph_node" + String(0)})
+        .attr("index", 0)
+        .attr("jump_link", d => d.id)
+        .attr("has_keyword", d => d.has_keyword)
+        .attr("title", d => d.title);
+
+    defs = svg.append("defs");
+
+    defs.append("marker")
+    .attr("id", "graph_asterisk")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 5)
+    .attr("refY", 5)
+    .attr("markerWidth", 12)
+    .attr("markerHeight", 12)
+    .attr("orient", 0)
+    .attr("fill", "white")
+    .append("path")
+        .attr("d", "M5,0L4,0L4,3.3L1.1,1.7L0.2,3.4L3,5L0.2,6.6L1.1,8.4L4,6.7L4,10L6,10L6,6.7L8.9,8.4L9.8,6.6L7,5L9.8,3.4L8.9,1.7L6,3.3L6,0")
+        .attr("class","graph_asterisk_path");   
+
+    var supplemental_list = d3.select(".graph_url_list")
+    supplemental_list.append("div")
+                        .text("Supplemental List View")
+                        .attr("class", "graph_url_list_title")
+    supplemental_list.append("div")
+                        .text("(Hover Over Nodes In Graph For More Information)")
+                        .attr("class", "graph_url_list_title");
+
+    d3.selectAll(".crawler_graph g .link_node").remove();
+    var keyword_found = false;
+    var final_nodes = d3.selectAll(".crawler_graph circle");
+    final_nodes.on("mouseover", function() { 
+                    circle_node_ingress(this, width, height, depth_limit, keyword);})
+                .on("mouseout", function() { circle_node_egress(this, scale);})
+                .on("click", circle_node_click)
+                .each( function() {
+                    this_circle = d3.select(this);
+                    if (this_circle.attr("has_keyword") == "true") {
+                        if (!keyword_found) {
+                            supplemental_list.append("div")
+                                            .text("(Keyword Was Found)")
+                                            .attr("class", "graph_url_list_title");
+                            keyword_found = true;
+                        }
+                        this_circle_parent = d3.select(this.parentNode);
+                        this_circle_parent.append("line")
+                                .attr("class", "graph_line")
+                                .attr("id", "graph_asterisk_line")
+                                .attr("x1", this_circle.attr("cx"))
+                                .attr("y1", this_circle.attr("cy"))
+                                .attr("x2", this_circle.attr("cx"))
+                                .attr("y2", this_circle.attr("cy"))
+                                .attr("marker-end", "url(#graph_asterisk)")
+                                .attr("stroke-width", 1)
+                                .attr("stroke", "white")
+                    }
+                })
+                .each( function() {
+                    bfs_add_supplemental_url_one(this, supplemental_list, scale);
+                });
+
+    var final_lines = d3.selectAll(".crawler_graph .graph_line");
+
+    svg.call(d3.zoom().on("zoom", function() {
+        final_nodes.attr("transform", d3.event.transform);
+        final_lines.attr("transform", d3.event.transform);
+    }));
+}
+
+function bfs_add_supplemental_url_one(input, url_list, scale) {
+    var this_circle = d3.select(input);
+    console.log(input);
+    console.log(this_circle);
+    var hover_text = "";
+    if (Number(this_circle.attr("id").slice(10)) == 0) {
+        hover_text += "<i>(Start Website)</i> ";
+    }
+    if (this_circle.attr("has_keyword") == "true") {
+        hover_text += "<i>(Has Keyword)</i> ";
+    }
+    hover_text += this_circle.attr("jump_link");
+    url_list.append("li")
+        .html(hover_text)
+        .attr("class", "graph_url_list_item")
+        .on("mouseover", function() { bfs_url_list_ingress_one(this, this_circle);})
+        .on("mouseout", function() { bfs_url_list_egress_one(this, this_circle, scale);})
+        .on("click", function() { bfs_url_list_click(this, this_circle);});
+}
+
+function bfs_url_list_ingress_one(list_input, circle_input) {
+    list_input.style.color = "blue";
+    list_input.style.textDecoration = "underline";
+
+    circle_input
+        .attr("stroke", "#000000")
+        .attr("stroke-width", 5)
+        .attr("fill", "white")
+        .attr("r", 12);
+}
+
+function bfs_url_list_egress_one(list_input, circle_input, scale) {
+    list_input.style.color = "black";
+    list_input.style.textDecoration = "none";
+
+    color = scale(Number(circle_input.attr("id").slice(10)) % 10);
+    circle_input
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 3)
+        .attr("fill", color)
+        .attr("r", 10);
 }

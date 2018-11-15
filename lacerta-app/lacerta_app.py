@@ -9,7 +9,7 @@ import search
 from parse import validate_url
 
 app = Flask(__name__)
-app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
+app.config['FLASKS3_BUCKET_NAME'] = 'crawler-site786'
 s3 = FlaskS3(app)
 
 

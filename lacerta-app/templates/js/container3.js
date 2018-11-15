@@ -9,8 +9,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "dev/query",
-            // url: "/query",
+            // url: "dev/query",
+            url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -39,16 +39,11 @@ function plotCrawlerGraph(graph) {
     d3.selectAll(".graph_url_list div").remove();
     d3.selectAll(".graph_url_list li").remove();
 
-    // Scroll to graph
-    $('html, body').animate({
-            scrollTop: ($("#container4").offset().top - 82)
-    }, 400);
-
     var parent_container = document.getElementById("container4");
     var width = parent_container.offsetWidth * 0.9544;
     var height = parent_container.offsetHeight * 0.9544;
     const scale = d3.scaleOrdinal(d3.schemeCategory10);
-    var node_labels = [];
+    var node_labels = []
     var node_urls = [];
 
     graph.nodes.forEach(function(e) {
@@ -56,9 +51,15 @@ function plotCrawlerGraph(graph) {
         node_urls.push(e.id);
     });
 
-    if (graph.nodes.length > 1) {
+    if (graph.nodes.length == 1) {
         if (graph.type == "BFS") {
-            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links);
+            force_directed_plot_one(graph.keyword, width, height, scale, graph.nodes);
+        } else {
+            spiral_plot_one(graph.keyword, width, height, scale, graph.nodes, node_labels, node_urls);
+        }
+    } else {
+    	if (graph.type == "BFS") {
+            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, graph.depth);
         } else {
             spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
         }
