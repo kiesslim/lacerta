@@ -8,6 +8,12 @@ function spiral_plot(keyword, width, height, scale, points, lines, node_labels, 
     p_list = {};
     l_list = {};
 
+    var node_count = points.length;
+    var link_count = lines.length;
+    if (node_count == link_count) {
+        lines = lines.slice(0, link_count - 1);
+    }
+
     var svg = d3.select(".crawler_graph")
             .attr("width", "95.44%")
             .attr("height", "95.44%")
@@ -16,6 +22,9 @@ function spiral_plot(keyword, width, height, scale, points, lines, node_labels, 
     points.forEach(function(p) {
         p_list[p.id] = {};
         q = Math.sqrt(k*j++);
+        if (j == 1) {
+            j = 2;
+        }
         p_list[p.id].x = r*q*Math.cos(q);
         p_list[p.id].y = r*q*Math.sin(q);
         p_list[p.id].has_keyword = p.has_keyword;
@@ -167,8 +176,8 @@ function rect_node_ingress(input, node_labels, node_urls, width, height, has_key
         .attr("height", 28);
     var rect_x = Number(this_rect.attr("x"));
     var rect_y = Number(this_rect.attr("y"));
-    var label_x = String(transform_scale * (rect_x + 38) + transform_x + width/2) + "px";
-    var label_y = String(transform_scale * (rect_y + 40) + transform_y + height/2) + "px";
+    var label_x = String(transform_scale * (rect_x + 45) + transform_x + width/2) + "px";
+    var label_y = String(transform_scale * (rect_y - 100) + transform_y + height/2) + "px";
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (Number(this_rect.attr("id").slice(10)) == 0) {

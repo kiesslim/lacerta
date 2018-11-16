@@ -41,7 +41,7 @@ function plotCrawlerGraph(graph) {
 
     // Scroll to graph
     $('html, body').animate({
-            scrollTop: ($("#container4").offset().top - 88)
+            scrollTop: ($("#container4").offset().top - 82)
     }, 400);
 
     var parent_container = document.getElementById("container4");
@@ -56,9 +56,11 @@ function plotCrawlerGraph(graph) {
         node_urls.push(e.id);
     });
 
-    if (graph.type == "BFS") {
-        force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
-    } else {
-        spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+    if (graph.nodes.length > 1) {
+        if (graph.type == "BFS") {
+            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links);
+        } else {
+            spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+        }
     }
 }
