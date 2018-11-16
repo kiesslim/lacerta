@@ -21,11 +21,7 @@ $(document).ready(function() {
                 //     "keyword": package["keyword"],
                 //     "crawl_data": graph["nodes"]
                 // };
-                // $.ajax({
-                //     type: "POST",
-                //     url: "/",
-                //     data: container2_data
-                // });
+                $("#container1").load( document.URL +  ' #container1' );
                 plotCrawlerGraph(graph);
             }
         });
