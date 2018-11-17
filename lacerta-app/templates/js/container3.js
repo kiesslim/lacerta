@@ -27,6 +27,16 @@ $(document).ready(function() {
                 //     data: container2_data
                 // });
                 plotCrawlerGraph(graph);
+            },
+            error: function(xhr, textStatus, error) {
+                d3.selectAll(".crawler_graph g").remove();
+                d3.selectAll(".crawler_graph defs").remove();
+                d3.selectAll(".graph_url_list div").remove();
+                d3.selectAll(".graph_url_list li").remove();
+                d3.select(".graph_url_list")
+                    .append("div")
+                    .text(xhr.status + " " + textStatus + " " + error)
+                    .attr("class", "graph_url_list_error");
             }
         });
 	});
