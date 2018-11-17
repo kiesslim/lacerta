@@ -59,7 +59,7 @@ function plotCrawlerGraph(graph) {
         }
     } else {
     	if (graph.type == "BFS") {
-            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, graph.depth);
+            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, graph.depth, graph.start_url);
         } else {
             spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
         }

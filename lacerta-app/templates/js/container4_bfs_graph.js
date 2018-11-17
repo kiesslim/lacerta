@@ -1,11 +1,11 @@
 
-function force_directed_plot(keyword, width, height, scale, points, lines, graph_depth) {
+function force_directed_plot(keyword, width, height, scale, points, lines, graph_depth, graph_start_url) {
     var tick_counter = 0;
-    var depth_limit = 1;
+    var depth_limit = 1.5;
     if (graph_depth == 2) {
-        depth_limit = 4;
+        depth_limit = 3;
     } else if (graph_depth == 3) {
-        depth_limit = 9;
+        depth_limit = 7;
     }
     width = width * depth_limit;
     height = height * depth_limit;
@@ -23,6 +23,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     var k = 0;
     lines.forEach( function(link) {
         if (link.source != link.target) {
+            link_string1 = link.source + link.target;
             if (node_indexer[link.source] == null) {
                 node_indexer[link.source] = {"id": k, "targets": {}};
                 visual_points.push({"id": k, "title": point_helper[link.source].title, 
@@ -32,6 +33,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
 
             if (node_indexer[link.target] != null) {
                 if (node_indexer[link.target].targets[link.source] != null && visual_points[node_indexer[link.source].id].source_origin == link.target) {
+                    node_indexer[link.source].targets[link.target] = {"id": node_indexer[link.target].id};
                     visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.target].id});
                 } else {
                     node_indexer[link.source].targets[link.target] = {"id": k};
@@ -39,7 +41,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
                             "url": point_helper[link.target].id, "has_keyword": point_helper[link.target].has_keyword, "source_origin": link.source});
                     k++;
 
-                    visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});  
+                    visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});
                 }
             } else {
                 node_indexer[link.source].targets[link.target] = {"id": k};
@@ -49,10 +51,16 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
 
                 node_indexer[link.target] = {"id": node_indexer[link.source].targets[link.target].id, "targets": {}};
 
-                visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});  
+                visual_lines.push({"source": node_indexer[link.source].id, "target": node_indexer[link.source].targets[link.target].id});
             }
-
         } 
+    });
+
+    var link_indexer = {};
+    var link_string1;
+    visual_lines.forEach( function(link, i) {
+        link_string1 = visual_points[link.source].url + visual_points[link.target].url;
+        link_indexer[link_string1] = {"id": i, "source": visual_points[link.source].id, "target": visual_points[link.target].id};   
     });
 
     var visual_urls_helper = {};
@@ -74,20 +82,20 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     var node_count = visual_points.length;
     var link_count = visual_lines.length;
 
-    var tick_stop = 50;
+    var tick_stop = 200;
     var alpha_stop = 0.02;
     if (graph_depth == 1) {
-        tick_stop = 100;
+        tick_stop = 25;
         alpha_stop = 0.05;
     } else if (graph_depth == 2) {
-        tick_stop = 225;
-        alpha_stop = 0.015;
+        tick_stop = 165;
+        alpha_stop = 0.035;
     } else if (graph_depth == 3) {
-        tick_stop = 275;
-        alpha_stop = 0.010;
+        tick_stop = 250;
+        alpha_stop = 0.015;
     }
 
-    var ideal_distance = 110;
+    var ideal_distance = 10;
 
     var graph_linknodes = [];
     var j = 0;
@@ -97,13 +105,50 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     });
     visual_points = visual_points.concat(graph_linknodes);
     
-    const nodes = visual_points.map(d => Object.create(d));
-    const links = visual_lines.map(d => Object.create(d));
-    const simulation = forceSimulation(nodes, links).on("tick", ticked).on("end", ended);
+    var simulation_count = 1;
+    var simulation_continue_flag = 0;
+    var ended_flag = 0;
+    var nodes = visual_points.map(d => Object.create(d));
+    var links = visual_lines.map(d => Object.create(d));
+    var simulation = forceSimulation(nodes, links).on("tick", ticked).on("end", check_simulation);
+   
+    function check_simulation() {
+        if (!simulation_continue_flag) {
+            simulation_continue();
+        }
+    }
+
+    function check_ended() {
+        if (!ended_flag) {
+            ended();
+        }
+    }
+
+    function forceSimulation(nodes, links) {
+        return d3.forceSimulation(nodes)
+          .force("link", d3.forceLink(links).id(d => d.id).distance(ideal_distance))
+          .force("charge", d3.forceManyBody().strength(-75))
+          .force("center", d3.forceCenter())
+          .force("collision", d3.forceCollide().radius(10).strength(1))
+          .alphaDecay([alpha_stop]);
+    }
+
+    function simulation_continue() {
+        simulation_continue_flag = 1;
+        simulation_count++;
+        tick_stop += 125;
+        ideal_distance = 110;
+        if (graph_depth == 1 && points.length > 30) {
+            ideal_distance = 150;
+        }
+        simulation.force("charge").strength(-100);
+        simulation.force("link").distance(ideal_distance);
+        simulation.on("end", check_ended);
+        simulation.alpha(0.5).restart();
+    }
 
     function ticked() {
         d3.selectAll(".crawler_graph g").remove();
-
         nodes[0].fx = 0;
         nodes[0].fy = 0;
 
@@ -120,7 +165,8 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
                         return 0.6;
                     }
                 })
-                .attr("stroke-width", 3);
+                .attr("stroke-width", 3)
+                .attr("id", function(d) { return "graph_line" + String(d.index)});
 
         var node = svg.append("g")
             .selectAll("circle")
@@ -166,19 +212,27 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
 
         linknode
             .attr("cx", function(d) {
-                return (graph_linknodes[d.index - node_count].x1 +
-                    graph_linknodes[d.index - node_count].x2) * 0.5; })
+                return (graph_linknodes[d.index - node_count].x2 -
+                    graph_linknodes[d.index - node_count].x1) * ((tick_counter/4) % 9 + 1)/10 + graph_linknodes[d.index - node_count].x1; })
             .attr("cy", function(d) {
-                return (graph_linknodes[d.index - node_count].y1 +
-                    graph_linknodes[d.index - node_count].y2) * 0.5; });
+                return (graph_linknodes[d.index - node_count].y2 -
+                    graph_linknodes[d.index - node_count].y1) * ((tick_counter/4) % 9 + 1)/10 + graph_linknodes[d.index - node_count].y1; });
 
         if (tick_counter++ > tick_stop) {
-            simulation.stop();
-            ended();
+            simulation.stop()
+            if (simulation_count == 1){
+                simulation_continue();
+            } else {
+                ended();
+            }
         }
     }
 
     function ended() {
+        if (graph_depth > 1) {
+            correct_overlap_one(nodes, links, node_indexer, link_indexer, graph_start_url);
+        }
+        ended_flag = 1;        
         defs = svg.append("defs");
         defs.append("marker")
             .attr("id", "graph_arrow")
@@ -254,17 +308,165 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
         	final_nodes.attr("transform", d3.event.transform);
         	final_lines.attr("transform", d3.event.transform);
       	}));
-
     }
+}
 
-    function forceSimulation(nodes, links) {
-        return d3.forceSimulation(nodes)
-          .force("link", d3.forceLink(links).id(d => d.id).distance(ideal_distance))
-          .force("charge", d3.forceManyBody().strength(-75))
-          .force("center", d3.forceCenter())
-          .force("collision", d3.forceCollide().radius(6))
-          .alphaDecay([alpha_stop]);
+function correct_overlap_one(nodes, links, node_indexer, link_indexer, graph_start_url) {
+    var angle_threshold = 4;
+    var check_angle_flag = 0;
+    var new_targets = {};
+    var link_angles = [];
+    var link_string1;
+    var initial_angle;
+    var flipped_angle;
+    var add_source_flag = 1;
+    links.forEach( function(link) {
+        link_angles.push(calculate_link_angle(link));
+    });
+
+    var source_origin_string;
+    var source_link_angles = [];
+    for (source in node_indexer) {
+        new_targets = node_indexer[source].targets;
+        for (item in new_targets) {
+            link_string1 = source + item
+            source_link_angles.push({"id": new_targets[item].id, "angle": link_angles[link_indexer[link_string1].id]});
+            if (!check_angle_flag && 
+                Object.keys(node_indexer[item].targets).length > 0 && 
+                nodes[node_indexer[item].id].source_origin == source) {
+                check_angle_flag = 1;
+            }
+        }
+        new_targets = {};
+        if (source_link_angles.length > 0) {
+            if (check_angle_flag) {
+                if (source != graph_start_url) {
+                    source_origin_string = nodes[node_indexer[source].id].source_origin;
+                    source_link_angles.forEach( function(element, i) {
+                        if (element.id == node_indexer[source_origin_string].id) {
+                            add_source_flag = 0;
+                        }
+                    });
+                    if (add_source_flag) {
+                        link_string1 = source_origin_string + source;
+                        initial_angle = link_angles[link_indexer[link_string1].id];
+                        if (initial_angle == 0) {
+                            flipped_angle = 180;
+                        } else if (initial_angle == 180 || initial_angle == -180) {
+                            flipped_angle = 0;
+                        } else if (initial_angle < 0) {
+                            flipped_angle = 180 + initial_angle;
+                        } else {
+                            flipped_angle = -180 + initial_angle;
+                        }   
+                        source_link_angles.push({"id": node_indexer[source_origin_string].id, "angle": flipped_angle});
+                    }
+                }
+                source_link_angles.sort(function(a,b){return a.angle - b.angle});
+                source_link_angles.forEach( function(element, i) {
+                    if (i == source_link_angles.length - 1) {
+                        if (Math.abs(element.angle + source_link_angles[0].angle) < angle_threshold) {
+                            move_graph_one(nodes, links, node_indexer, link_indexer, element, source_link_angles[0])
+                        }
+                    } else {
+                        if (Math.abs((element.angle - source_link_angles[i + 1].angle)) < angle_threshold) {
+                            move_graph_one(nodes, links, node_indexer, link_indexer, element, source_link_angles[i + 1])
+                        } 
+                    }
+                   
+                });
+            }   
+        }
+
+        add_source_flag = 1;
+        check_angle_flag = 0;
+        source_link_angles = [];
     }
+}
+
+function move_graph_one(nodes, links, node_indexer, link_indexer, node_one, node_two) {
+    var angle_threshold = 4*Math.PI/180;
+    var node_one_terminal = 0;
+    var node_two_terminal = 0;
+    var node_select_string;
+    var link_select_string;
+    var link_string1;
+    var node_to_move;
+    var link_to_move;
+    var new_x;
+    var new_y;
+    var old_x1;
+    var old_x2;
+    var old_y1;
+    var old_y2;
+    var delta_theta = angle_threshold;
+
+    if (Object.keys(node_indexer[nodes[node_one.id].url].targets).length == 0 && node_one.id != 0) {
+        node_one_terminal = 1;
+    } 
+    if (Object.keys(node_indexer[nodes[node_two.id].url].targets).length == 0 && node_two.id != 0) {
+        node_two_terminal = 1;
+    } 
+
+    if (node_one_terminal) {
+        node_select_string = "#graph_node" + String(node_one.id);
+        node_to_move = d3.select(node_select_string);
+        link_string1 = nodes[node_one.id].source_origin + nodes[node_one.id].url;
+        link_select_string = "#graph_line" + link_indexer[link_string1].id;
+        link_to_move = d3.select(link_select_string);
+        if (node_two.angle > node_one.angle) {
+            delta_theta = -angle_threshold;
+        } 
+        old_x1 = Number(link_to_move.attr("x1"));
+        old_y1 = Number(link_to_move.attr("y1"));
+        old_x2 = Number(link_to_move.attr("x2"));
+        old_y2 = Number(link_to_move.attr("y2"));
+        new_x = (old_x2 - old_x1)*Math.cos(delta_theta) - (old_y2 - old_y1)*Math.sin(delta_theta) + old_x1;
+        new_y = (old_x2 - old_x1)*Math.sin(delta_theta) + (old_y2 - old_y1)*Math.cos(delta_theta) + old_y1;
+        node_to_move
+            .attr("cx", new_x)
+            .attr("cy", new_y);
+        link_to_move
+            .attr("x2", new_x)
+            .attr("y2", new_y);
+    } else if (node_two_terminal) {
+        node_select_string = "#graph_node" + String(node_two.id);
+        node_to_move = d3.select(node_select_string);
+        link_string1 = nodes[node_two.id].source_origin + nodes[node_two.id].url;
+        link_select_string = "#graph_line" + link_indexer[link_string1].id;
+        link_to_move = d3.select(link_select_string);
+        if (node_one.angle > node_two.angle) {
+            delta_theta = -angle_threshold;
+        } 
+        old_x1 = Number(link_to_move.attr("x1"));
+        old_y1 = Number(link_to_move.attr("y1"));
+        old_x2 = Number(link_to_move.attr("x2"));
+        old_y2 = Number(link_to_move.attr("y2"));
+        new_x = (old_x2 - old_x1)*Math.cos(delta_theta) - (old_y2 - old_y1)*Math.sin(delta_theta) + old_x1;
+        new_y = (old_x2 - old_x1)*Math.sin(delta_theta) + (old_y2 - old_y1)*Math.cos(delta_theta) + old_y1;
+        node_to_move
+            .attr("cx", new_x)
+            .attr("cy", new_y);
+        link_to_move
+            .attr("x2", new_x)
+            .attr("y2", new_y);
+    }
+}
+
+function calculate_link_angle(link) {
+    delta_y = link.target.y - link.source.y;
+    if (delta_y == 0) {
+        return 0;
+    }
+    delta_x = link.target.x - link.source.x;
+    if (delta_x == 0) {
+        if (delta_y < 0) {
+            return -90;
+        } else {
+            return 90;
+        }
+    }
+    return Math.atan2(delta_y, delta_x) * 180/Math.PI;  
 }
 
 function circle_node_ingress(input, width, height, depth_limit, keyword) {
@@ -482,8 +684,6 @@ function force_directed_plot_one(keyword, width, height, scale, points) {
 
 function bfs_add_supplemental_url_one(input, url_list, scale) {
     var this_circle = d3.select(input);
-    console.log(input);
-    console.log(this_circle);
     var hover_text = "";
     if (Number(this_circle.attr("id").slice(10)) == 0) {
         hover_text += "<i>(Start Website)</i> ";
