@@ -2,6 +2,10 @@
 $(document).ready(function() {
 	$('#new_query_button').click( function (e) {
 	    e.preventDefault();
+	    d3.selectAll(".crawler_graph g").remove();
+        d3.selectAll(".crawler_graph defs").remove();
+        d3.selectAll(".graph_url_list div").remove();
+        d3.selectAll(".graph_url_list li").remove();
 		var package = {};
 		package["start_url"] = $("#start_url").val();
 		package["depth"] = $("#depth").val();
@@ -9,8 +13,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            // url: "dev/query",
-            url: "/query",
+            url: "dev/query",
+            // url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -29,13 +33,9 @@ $(document).ready(function() {
                 plotCrawlerGraph(graph);
             },
             error: function(xhr, textStatus, error) {
-                d3.selectAll(".crawler_graph g").remove();
-                d3.selectAll(".crawler_graph defs").remove();
-                d3.selectAll(".graph_url_list div").remove();
-                d3.selectAll(".graph_url_list li").remove();
                 d3.select(".graph_url_list")
                     .append("div")
-                    .text(xhr.status + " " + textStatus + " " + error)
+                    .text("Search failed: " + xhr.status + " " + textStatus + " " + error)
                     .attr("class", "graph_url_list_error");
             }
         });
@@ -44,10 +44,6 @@ $(document).ready(function() {
 
 function plotCrawlerGraph(graph) {
     console.log(graph);
-    d3.selectAll(".crawler_graph g").remove();
-    d3.selectAll(".crawler_graph defs").remove();
-    d3.selectAll(".graph_url_list div").remove();
-    d3.selectAll(".graph_url_list li").remove();
 
     var parent_container = document.getElementById("container4");
     var width = parent_container.offsetWidth * 0.9544;

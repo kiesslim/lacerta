@@ -1,6 +1,7 @@
 
 function force_directed_plot(keyword, width, height, scale, points, lines, graph_depth, graph_start_url) {
-    var tick_counter = 0;
+    var tick_counter = 0; // Used to end the simulation without waiting for it to end on its own
+    // Use depth_limit to set zoom
     var depth_limit = 1.5;
     if (graph_depth == 2) {
         depth_limit = 3;
@@ -10,11 +11,15 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     width = width * depth_limit;
     height = height * depth_limit;
 
+    // Set viewBox
     var svg = d3.select(".crawler_graph")
             .attr("width", "95.44%")
             .attr("height", "95.44%")
             .attr("viewBox", [-width / 2, -height / 2, width, height]);
 
+    // Use the points and lines arguments to make data for the graph
+    // This block of code approximately adds one node for each link in the graph, even if it results
+    // in redundant urls
     var visual_points = [];
     var visual_lines = [];
     var node_indexer = {};
@@ -82,6 +87,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     var node_count = visual_points.length;
     var link_count = visual_lines.length;
 
+    // Set tick_stop and alpha_stop to determine length of time for simulation
     var tick_stop = 200;
     var alpha_stop = 0.02;
     if (graph_depth == 1) {
@@ -97,6 +103,8 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
 
     var ideal_distance = 10;
 
+    // This creates additional nodes that are assigned positions at the links to try to keep the nodes
+    // from settling on the lines
     var graph_linknodes = [];
     var j = 0;
     visual_lines.forEach(function(link) {
@@ -105,6 +113,7 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
     });
     visual_points = visual_points.concat(graph_linknodes);
     
+    // Assign nodes and links and start simulation
     var simulation_count = 1;
     var simulation_continue_flag = 0;
     var ended_flag = 0;
