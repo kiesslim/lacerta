@@ -32,8 +32,6 @@ class Web:
         self.url = self.normalize(url)
         self.response = self.get_response(url)
         self.status_code = self.get_status()
-        if self.status_code is not 200:
-            return None
         self.urls = set()
         self.html = self.get_html()
         self.get_urls_from_html()
@@ -161,7 +159,7 @@ class Web:
         """
         if self.response:
             return self.response.status_code
-        return '500'
+        return 500
 
 #TODO:add error handling. raise ValueError or exception?
 # note: this may not be needed. Invalid urls could just be represented as
