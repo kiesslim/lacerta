@@ -35,11 +35,10 @@ class Node:
 
     def check_for_keyword(self, text, keyword):
         """stop keyword feature"""
-        if not text or not keyword:
-            return False
-        if keyword in text:
-            return True
-        return False
+        if text and keyword:
+            if keyword in text:
+                self.has_keyword = True
+                print('keyword: {} found!'.format(keyword))
 
     def __str__(self):
         if self is None:
@@ -141,6 +140,7 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
             graph.add_node(node)
             print('nodes = {}'.format(len(graph.nodes)))
             if node.has_keyword:
+                print('keyword: {} found'.format(keyword))
                 return graph
             logging.debug(len(graph.nodes))
             if len(graph.nodes) >= MAX_NODES:
@@ -166,9 +166,12 @@ def dfs(graph, keyword, depth, start_time, current_url):
         keyword -- stop keyword stops search if found on rendered web text
         depth -- user specified graph depth
     """
+    print('depth: {}'.format(len(graph.nodes)))
     if processing_time_exceeded(start_time):
+        print('time exceeded')
         return graph
     if len(graph.nodes) >= depth:
+        print('reached max depth')
         return graph
     web = Web(current_url)
     if web and web.status_code is 200:
@@ -177,10 +180,14 @@ def dfs(graph, keyword, depth, start_time, current_url):
         node.check_for_keyword(web.text, keyword)
         graph.add_node(node)
         if node.has_keyword:
+            print('keyword: {} found'.format(keyword))
             return graph
         for edge in node.edges:
             if edge not in graph.nodes:
+                print('next node')
                 return dfs(graph, keyword, depth, start_time, edge)
+            print('this is probably it')
+    print('web has invalid status code {}'.format(web.status_code))
     return graph
 
 def processing_time_exceeded(start_time):
