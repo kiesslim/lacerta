@@ -6,7 +6,8 @@ import logging
 import sys, os, json, traceback
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
-from parse import validate_url
+from parse import validate_url_format
+
 
 app = Flask(__name__)
 app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
@@ -42,7 +43,7 @@ def query():
 		keyword = request.form["keyword"]
 		search_type = request.form["search_type"]
 
-		if not validate_url(start):
+		if not validate_url_format(start):
 			return bad_request('Error: Invalid Start URL: {}'.format(start))
 		if not start or not depth:
 			return bad_request('Error: Start URL and seach depth required!')
