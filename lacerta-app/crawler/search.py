@@ -168,7 +168,7 @@ def dfs(graph, keyword, depth, start_time, current_url):
     if processing_time_exceeded(start_time):
         logging.error('processing time exceeded')
         return graph
-    if len(graph.nodes) >= depth
+    if len(graph.nodes) >= depth:
         return graph
     web = Web(current_url)
     if web and web.status_code is 200:
