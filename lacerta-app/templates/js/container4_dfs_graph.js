@@ -1,5 +1,5 @@
 
-function spiral_plot(keyword, width, height, scale, points, lines, node_labels, node_urls) {
+function spiral_plot(start_url, keyword, depth, width, height, scale, points, lines, node_labels, node_urls) {
     // Use r(t) = kt
     var r = width/100*2;
     var k = 16;
@@ -107,15 +107,23 @@ function spiral_plot(keyword, width, height, scale, points, lines, node_labels, 
             .attr("class","graph_asterisk_path");
 
     d3.selectAll(".graph_line")
-        .attr("marker-end", "url(#graph_arrow)")
+        .attr("marker-end", "url(#graph_arrow)");
 
-    var supplemental_list = d3.select(".graph_url_list")
+    var stop_word = keyword;
+    if (stop_word === "") {
+        stop_word = "(None)";
+    }
+    var supplemental_list = d3.select(".graph_url_list");
     supplemental_list.append("div")
-                        .text("Supplemental List View")
-                        .attr("class", "graph_url_list_title")
+        .append("h6").text("Start URL: " + start_url);
     supplemental_list.append("div")
-                        .text("(Hover Over Nodes In Graph For More Information)")
-                        .attr("class", "graph_url_list_title");
+        .append("h6").text("Crawl Type: DFS");
+    supplemental_list.append("div")
+        .append("h6").text("Depth: " + depth);
+    supplemental_list.append("div")
+        .append("h6").text("Stop Word: " + stop_word);
+    supplemental_list.append("div")
+        .append("h6").text("Nodes: ");
 
     var final_nodes = d3.selectAll(".crawler_graph rect");
     final_nodes.on("mouseover", function(item) { rect_node_ingress(this, node_labels, node_urls, width, height, item["has_keyword"], keyword)})
@@ -181,7 +189,7 @@ function rect_node_ingress(input, node_labels, node_urls, width, height, has_key
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (Number(this_rect.attr("id").slice(10)) == 0) {
-        hover_text += "<b><i>Start Website</i></b><br/>";
+        hover_text += "<b><i>Start URL</i></b><br/>";
     }
     if (has_keyword) {
         hover_text += "<b><i>Has Keyword: </b>" + keyword + "</i><br/>";
@@ -221,7 +229,7 @@ function dfs_add_supplemental_url(input, url_list, scale, has_keyword) {
     var this_rect = d3.select(input);
     var hover_text = "";
     if (Number(this_rect.attr("id").slice(10)) == 0) {
-        hover_text += "<i>(Start Website)</i> ";
+        hover_text += "<i>(Start URL)</i> ";
     }
     if (has_keyword) {
         hover_text += "<i>(Has Keyword)</i> ";

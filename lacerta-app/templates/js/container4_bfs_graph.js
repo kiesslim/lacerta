@@ -1,5 +1,5 @@
 
-function force_directed_plot(keyword, width, height, scale, points, lines) {
+function force_directed_plot(start_url, keyword, depth, width, height, scale, points, lines) {
     var tick_counter = 0;
     var depth_limit = 1.5;
     width = width * depth_limit;
@@ -195,13 +195,21 @@ function force_directed_plot(keyword, width, height, scale, points, lines) {
         d3.selectAll(".graph_line")
             .attr("marker-end", "url(#graph_arrow)");
 
-        var supplemental_list = d3.select(".graph_url_list")
+        var stop_word = keyword;
+        if (stop_word === "") {
+            stop_word = "(None)";
+        }
+        var supplemental_list = d3.select(".graph_url_list");
         supplemental_list.append("div")
-                            .text("Supplemental List View")
-                            .attr("class", "graph_url_list_title")
+            .append("h6").text("Start URL: " + start_url);
         supplemental_list.append("div")
-                            .text("(Hover Over Nodes In Graph For More Information)")
-                            .attr("class", "graph_url_list_title");
+            .append("h6").text("Crawl Type: BFS");
+        supplemental_list.append("div")
+            .append("h6").text("Depth: " + depth);
+        supplemental_list.append("div")
+            .append("h6").text("Stop Word: " + stop_word);
+        supplemental_list.append("div")
+            .append("h6").text("Nodes:");
 
         d3.selectAll(".crawler_graph g .link_node").remove();
         var keyword_found = false;
@@ -276,7 +284,7 @@ function circle_node_ingress(input, width, height, depth_limit, keyword) {
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (this_circle.attr("index") == 0) {
-        hover_text += "<b><i>Start Website</i></b><br/>";
+        hover_text += "<b><i>Start URL</i></b><br/>";
     }
     if (this_circle.attr("has_keyword") == "true") {
         hover_text += "<b><i>Has Keyword: </b>" + keyword + "</i><br/>";
@@ -319,7 +327,7 @@ function bfs_add_supplemental_url(visual_urls, url_list, scale) {
 
         hover_text = "";
         if (url.index == 0) {
-            hover_text += "<i>(Start Website)</i> ";
+            hover_text += "<i>(Start URL)</i> ";
         }
         if (these_circles[0].attr("has_keyword") == "true") {
             hover_text += "<i>(Has Keyword)</i> ";

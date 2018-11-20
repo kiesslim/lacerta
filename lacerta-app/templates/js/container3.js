@@ -9,26 +9,26 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            url: "dev/query",
-            // url: "/query",
+            // url: "dev/query",
+            url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
-                // var container2_data = {
-                //     "start_url": package["start_url"],
-                //     "depth": package["depth"],
-                //     "search_type": package["search_type"],
-                //     "keyword": package["keyword"],
-                //     "crawl_data": graph["nodes"]
-                // };
+                var container2_data = {
+                    "start_url": package["start_url"],
+                    "depth": package["depth"],
+                    "search_type": package["search_type"],
+                    "keyword": package["keyword"],
+                    "crawl_data": graph["nodes"]
+                };
                 $("#container1").load( document.URL +  ' #container1' );
-                plotCrawlerGraph(graph);
+                plotCrawlerGraph(graph, container2_data);
             }
         });
 	});
 });
 
-function plotCrawlerGraph(graph) {
+function plotCrawlerGraph(graph, container2_data) {
     console.log(graph);
     d3.selectAll(".crawler_graph g").remove();
     d3.selectAll(".crawler_graph defs").remove();
@@ -53,10 +53,10 @@ function plotCrawlerGraph(graph) {
     });
 
     if (graph.nodes.length > 1) {
-        if (graph.type == "BFS") {
-            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links);
+        if (graph.type === "BFS") {
+            force_directed_plot(container2_data.start_url, graph.keyword, container2_data.depth, width, height, scale, graph.nodes, graph.links);
         } else {
-            spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+            spiral_plot(container2_data.start_url, graph.keyword, container2_data.depth, width, height, scale, graph.nodes, graph.links, node_labels, node_urls, container2_data.depth);
         }
     }
 }
