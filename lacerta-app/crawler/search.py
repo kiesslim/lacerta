@@ -38,7 +38,7 @@ class Node:
         if text and keyword:
             if keyword in text:
                 self.has_keyword = True
-                print('keyword: {} found!'.format(keyword))
+                logging.debug('keyword: {} found!'.format(keyword))
 
     def __str__(self):
         if self is None:
@@ -138,9 +138,8 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
             if current_depth is not max_depth:
                 node.get_all_neighbors(web.urls)
             graph.add_node(node)
-            print('nodes = {}'.format(len(graph.nodes)))
+            logging.debug('nodes = {}'.format(len(graph.nodes)))
             if node.has_keyword:
-                print('keyword: {} found'.format(keyword))
                 return graph
             logging.debug(len(graph.nodes))
             if len(graph.nodes) >= MAX_NODES:
@@ -166,12 +165,10 @@ def dfs(graph, keyword, depth, start_time, current_url):
         keyword -- stop keyword stops search if found on rendered web text
         depth -- user specified graph depth
     """
-    print('depth: {}'.format(len(graph.nodes)))
     if processing_time_exceeded(start_time):
-        print('time exceeded')
+        logging.error('processing time exceeded')
         return graph
-    if len(graph.nodes) >= depth:
-        print('reached max depth')
+    if len(graph.nodes) >= depth
         return graph
     web = Web(current_url)
     if web and web.status_code is 200:
