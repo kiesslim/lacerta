@@ -12,8 +12,8 @@ $(document).ready(function() {
 		package["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
-            // url: "dev/query",
-            url: "/query",
+            url: "dev/query",
+            // url: "/query",
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -23,7 +23,7 @@ $(document).ready(function() {
             error: function(xhr, textStatus, error) {
                 d3.select(".graph_url_list")
                     .append("div")
-                    .text("Search failed: " + xhr.status + " " + textStatus + " " + error)
+                    .text("Search failed: status " + xhr.status + ", " + textStatus + ", " + error + ", " + xhr.responseJSON["message"])
                     .attr("class", "graph_url_list_error");
             }
         });
