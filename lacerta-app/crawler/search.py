@@ -131,7 +131,6 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
     next_level = []
     for url in toVisit:
         web = Web(url)
-        #TODO: handle email, tel responses do not have status_code
         if web and web.status_code is 200:
             node = Node(web)
             node.check_for_keyword(web.text, keyword)
@@ -141,7 +140,6 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
             logging.debug('nodes = {}'.format(len(graph.nodes)))
             if node.has_keyword:
                 return graph
-            logging.debug(len(graph.nodes))
             if len(graph.nodes) >= MAX_NODES:
                 logging.debug('Maximum number of nodes reached')
                 return graph
@@ -166,9 +164,9 @@ def dfs(graph, keyword, depth, start_time, current_url):
         depth -- user specified graph depth
     """
     if processing_time_exceeded(start_time):
-        logging.error('processing time exceeded')
         return graph
-    if len(graph.nodes) >= depth
+    if len(graph.nodes)-1 >= depth:
+        logging.debug('rmax depth reached')
         return graph
     web = Web(current_url)
     if web and web.status_code is 200:
@@ -177,15 +175,12 @@ def dfs(graph, keyword, depth, start_time, current_url):
         node.check_for_keyword(web.text, keyword)
         graph.add_node(node)
         if node.has_keyword:
-            print('keyword: {} found'.format(keyword))
             return graph
         for edge in node.edges:
             if edge not in graph.nodes:
-                print('next node')
                 return dfs(graph, keyword, depth, start_time, edge)
-            print('this is probably it')
-    print('web has invalid status code {}'.format(web.status_code))
     return graph
+
 
 def processing_time_exceeded(start_time):
     if timeit.default_timer() - start_time >= MAX_TIME:

@@ -49,8 +49,20 @@ def query():
 			return bad_request('Error: Start URL and seach depth required!')
 		if search_type not in ['BFS', 'DFS']:
 			return bad_request('Error: search type {} is an invalid search type'.format(search_type))
-		if not int(depth) or int(depth) < 0:
+		try:
+			int(depth)
+		except ValueError as error:
+			tb = traceback.format_exc()
+			logging.error(tb)
 			return bad_request('Error: Invalid depth. Please specify a positive integer')
+
+		if int(depth) < 0:
+			return bad_request('Error: Invalid depth. Please specify a positive integer')
+
+		if keyword:
+			if len(keyword.split()) > 1:
+				return bad_request('Error: keyword must be one word')
+
 		try:
 			result = search.search(start, depth, keyword, search_type)
 			result_json = search.loadGraph(result)
@@ -75,7 +87,6 @@ def query():
 			return server_error(str(e))
 
 
-#TODO: add additional errorhandlers
 @app.errorhandler(400)
 def bad_request(error_message):
 	message = {
