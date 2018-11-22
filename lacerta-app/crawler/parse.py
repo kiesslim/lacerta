@@ -26,9 +26,10 @@ class Web:
     """
     def __init__(self, url):
         print(url)
-        if not validate_url_format(url):
-            #TODO fix this
-            return None
+            # if not validate_url_format(url):
+            #     #TODO fix this
+            #
+            #     return None
         self.url = self.normalize(url)
         self.response = self.get_response(url)
         self.status_code = self.get_status()
@@ -69,8 +70,9 @@ class Web:
             a None object otherwise. NOTE: response.text is already encoded/decoded,
             so no additional encoding required
         """
-        if self.status_code is 200 and self.response.text:
-            return html.fromstring(self.response.text)
+        if self.status_code is 200 and self.response.content:
+
+            return html.fromstring(self.response.content)
         return None
 
     #TODO: fix bug www.mysite.org AND www.mysite.org/ both return
@@ -122,7 +124,7 @@ class Web:
         """
             Cleaner removes HTML tags prior to processing.
         """
-        if len(self.response.text):
+        if len(self.response.content):
             cleaner = Cleaner()
             cleaner.javascript = True
             cleaner.scripts = True
@@ -134,7 +136,7 @@ class Web:
             cleaner.processing_instructions = True
             cleaner.embedded = True
             cleaner.form = True
-            return html.fromstring(cleaner.clean_html(self.response.text))
+            return html.fromstring(cleaner.clean_html(self.response.content))
 
     #source: https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
     #source: http://flask.pocoo.org/docs/0.12/patterns/apierrors/
@@ -144,7 +146,7 @@ class Web:
             returns the response or throws an error
         """
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=3.0)
             if response.status_code is not 200:
                 logging.error('Reponse Code: {}'.format(response.status_code))
             return response
@@ -152,6 +154,7 @@ class Web:
             logging.error('HTTP Error: {}'.format(httpErr))
         except Exception as e:
             logging.error('Server Error: {}'.format(e))
+        return None
 
     def get_status(self):
         """
