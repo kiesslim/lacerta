@@ -1,20 +1,25 @@
 $(document).ready(function() {
 	$('#new_query_button').click( function (e) {
 	    e.preventDefault();
+	    let start_url = $("#start_url").val();
+        if (start_url === "") {
+            alert("Please input a starting URL");
+            return false;
+        }
 	    d3.selectAll(".crawler_graph g").remove();
         d3.selectAll(".crawler_graph defs").remove();
         d3.selectAll(".graph_url_list div").remove();
         d3.selectAll(".graph_url_list li").remove();
-		var package = {};
-		package["start_url"] = $("#start_url").val();
-		package["depth"] = $("#depth").val();
-		package["keyword"] = $("#keyword").val();
-		package["search_type"] = $("input[name='search_type']:checked").val();
+		let data = {};
+		data["start_url"] = start_url;
+		data["depth"] = $("#depth").val();
+		data["keyword"] = $("#keyword").val();
+		data["search_type"] = $("input[name='search_type']:checked").val();
         $.ajax({
             type: "POST",
             url: "dev/query",
             // url: "/query",
-            data: package,
+            data: data,
             success: function(output) {
                 graph = JSON.parse(output);
                 $("#container1").load( document.URL +  ' #container1' );
@@ -30,6 +35,25 @@ $(document).ready(function() {
 	});
 });
 
+// change depth menu drop down values
+function depthMenu(searchType){
+	const a = ['1','2','3'];
+	const b = ['1','2','3','4','5','6','7','8','9','10'];
+	let s = document.getElementById('depth');
+	for(var i = s.options.length-1; i >= 0 ; i--) { s.options[i] = null; }
+	if(searchType.value !== 0){
+		let z;
+		switch (searchType.value) {
+			case 'BFS' : z = a; break;
+			case 'DFS' : z = b; break;
+			default : alert('Error: Invalid search type'); break;
+		}
+		for(i = 0; i < z.length; i++ ) {
+		  s.options[i] = new Option(z[i],z[i],false,false);
+		}
+	}
+}
+
 function plotCrawlerGraph(graph) {
     console.log(graph);
 
@@ -37,7 +61,7 @@ function plotCrawlerGraph(graph) {
     var width = parent_container.offsetWidth * 0.9544;
     var height = parent_container.offsetHeight * 0.9544;
     const scale = d3.scaleOrdinal(d3.schemeCategory10);
-    var node_labels = []
+    var node_labels = [];
     var node_urls = [];
 
     graph.nodes.forEach(function(e) {
