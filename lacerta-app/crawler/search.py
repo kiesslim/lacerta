@@ -82,10 +82,6 @@ def search(start_url, max_depth, keyword, search_type):
     if not validate_url_format(start_url):
         raise ValueError('Invalid Start URL: {}'.format(start_url))
 
-    r = requests.get(start_url)
-    if r.status_code is not 200:
-        r.raise_for_status()
-
     if not int(max_depth) or int(max_depth) < 0:
         raise ValueError('Error: max_depth must be a positive integer.')
 
@@ -98,8 +94,8 @@ def search(start_url, max_depth, keyword, search_type):
         toVisit.append(g.start_url)
         return bfs(g, toVisit, keyword, 0, int(max_depth), start_time)
     elif search_type == 'DFS':
-        if int(max_depth) > 50:
-            raise ValueError('Error: Invalid depth. max_depth for DFS must be 50 or less.')
+        if int(max_depth) > 20:
+            raise ValueError('Error: Invalid depth. max_depth for DFS must be 20 or less.')
         return dfs(g, keyword, int(max_depth), start_time, start_url)
     else:
         raise ValueError('Invalid Search Type: Specify BFS or DFS')

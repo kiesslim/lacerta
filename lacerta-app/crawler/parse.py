@@ -8,7 +8,6 @@ import requests
 from urllib.parse import urldefrag, urlparse, urlsplit, urljoin, urlunsplit
 
 
-
 class Web:
     """ Web object stores parses a webpage and stores relevant webpage contents.
         Web object requires web urls are in a specific format. Webpages that
@@ -26,10 +25,6 @@ class Web:
     """
     def __init__(self, url):
         print(url)
-            # if not validate_url_format(url):
-            #     #TODO fix this
-            #
-            #     return None
         self.url = self.normalize(url)
         self.response = self.get_response(url)
         self.status_code = self.get_status()
@@ -67,12 +62,14 @@ class Web:
     def get_html(self):
         """
             parses the html from the webpages with valid responses, or it returns
-            a None object otherwise. NOTE: response.text is already encoded/decoded,
-            so no additional encoding required
+            a None object otherwise.
         """
-        if self.status_code is 200 and self.response.content:
 
-            return html.fromstring(self.response.content)
+        if self.status_code is 200 and self.response.content:
+            try:
+                return html.fromstring(self.response.text)
+            except Exception as e:
+                logging.error(e)
         return None
 
     #TODO: fix bug www.mysite.org AND www.mysite.org/ both return
@@ -86,6 +83,8 @@ class Web:
             logging.error('HTML not available cannot get URLs')
             return None
         cleaned = self.clean_html()
+        if cleaned is None:
+            return None
         raw_urls = cleaned.xpath('//a/@href')
         if not raw_urls:
             logging.error('parsing error: unable to parse urls from html')
@@ -104,6 +103,8 @@ class Web:
     #Note: get_text doesn't address broken html, i.e. although style/js removed from html,
     # it will still return .css/js when there are missing tags in the html. lxml.html.fromstring
     # is supposed to fix the broken html, but it doesn't catch everything
+    #
+    # https://lxml.de/tutorial.html#elements-contain-text
     def get_text(self):
         """
             returns all renderable text from valid webpage HTML. the html is
@@ -120,6 +121,7 @@ class Web:
             return None
         return cleaned.text_content()
 
+
     def clean_html(self):
         """
             Cleaner removes HTML tags prior to processing.
@@ -128,15 +130,16 @@ class Web:
             cleaner = Cleaner()
             cleaner.javascript = True
             cleaner.scripts = True
-            cleaner.stye = True
-            cleaner.inline_style = True
+            cleaner.style = True
             cleaner.comments = True
-            cleaner.meta = True
-            cleaner.links = True
-            cleaner.processing_instructions = True
-            cleaner.embedded = True
-            cleaner.form = True
-            return html.fromstring(cleaner.clean_html(self.response.content))
+
+            try:
+                return html.fromstring(cleaner.clean_html(self.response.text))
+            except Exception as e:
+                logging.error(e)
+
+            return None
+
 
     #source: https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
     #source: http://flask.pocoo.org/docs/0.12/patterns/apierrors/
@@ -155,6 +158,7 @@ class Web:
         except Exception as e:
             logging.error('Server Error: {}'.format(e))
         return None
+
 
     def get_status(self):
         """
