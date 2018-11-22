@@ -1,4 +1,3 @@
-
 $(document).ready(function() {
 	$('#new_query_button').click( function (e) {
 	    e.preventDefault();
@@ -18,20 +17,13 @@ $(document).ready(function() {
             data: package,
             success: function(output) {
                 graph = JSON.parse(output);
-                // var container2_data = {
-                //     "start_url": package["start_url"],
-                //     "depth": package["depth"],
-                //     "search_type": package["search_type"],
-                //     "keyword": package["keyword"],
-                //     "crawl_data": graph["nodes"]
-                // };
                 $("#container1").load( document.URL +  ' #container1' );
                 plotCrawlerGraph(graph);
             },
             error: function(xhr, textStatus, error) {
                 d3.select(".graph_url_list")
                     .append("div")
-                    .text("Search failed: " + xhr.status + " " + textStatus + " " + error)
+                    .text("Search failed: status " + xhr.status + ", " + textStatus + ", " + error + ", " + xhr.responseJSON["message"])
                     .attr("class", "graph_url_list_error");
             }
         });
@@ -53,17 +45,17 @@ function plotCrawlerGraph(graph) {
         node_urls.push(e.id);
     });
 
-    if (graph.nodes.length == 1) {
-        if (graph.type == "BFS") {
-            force_directed_plot_one(graph.keyword, width, height, scale, graph.nodes);
+    if (graph.nodes.length === 1) {
+        if (graph.type === "BFS") {
+            force_directed_plot_one(graph.start_url, graph.depth, graph.keyword, width, height, scale, graph.nodes);
         } else {
-            spiral_plot_one(graph.keyword, width, height, scale, graph.nodes, node_labels, node_urls);
+            spiral_plot_one(graph.start_url, graph.depth, graph.keyword, width, height, scale, graph.nodes, node_labels, node_urls);
         }
     } else {
-    	if (graph.type == "BFS") {
-            force_directed_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, graph.depth, graph.start_url);
+    	if (graph.type === "BFS") {
+            force_directed_plot(graph.start_url, graph.depth, graph.keyword, width, height, scale, graph.nodes, graph.links);
         } else {
-            spiral_plot(graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
+            spiral_plot(graph.start_url, graph.depth, graph.keyword, width, height, scale, graph.nodes, graph.links, node_labels, node_urls);
         }
     }
 }

@@ -1,5 +1,5 @@
 
-function spiral_plot(keyword, width, height, scale, points, lines, node_labels, node_urls) {
+function spiral_plot(graph_start_url, graph_depth, keyword, width, height, scale, points, lines, node_labels, node_urls) {
     // Use r(t) = kt
     var r = width/100*2;
     var k = 16;
@@ -127,13 +127,21 @@ function spiral_plot(keyword, width, height, scale, points, lines, node_labels, 
             d3.selectAll(".graph_line")
                 .attr("marker-end", "url(#graph_arrow)")
 
-            var supplemental_list = d3.select(".graph_url_list")
+            var stop_word = keyword;
+            if (stop_word === "") {
+                stop_word = "(None)";
+            }
+            var supplemental_list = d3.select(".graph_url_list");
             supplemental_list.append("div")
-                                .text("Supplemental List View")
-                                .attr("class", "graph_url_list_title")
+                .append("h6").text("Start URL: " + graph_start_url);
             supplemental_list.append("div")
-                                .text("(Hover Over Nodes In Graph For More Information)")
-                                .attr("class", "graph_url_list_title");
+                .append("h6").text("Crawl Type: DFS");
+            supplemental_list.append("div")
+                .append("h6").text("Depth: " + graph_depth);
+            supplemental_list.append("div")
+                .append("h6").text("Stop Word: " + stop_word);
+            supplemental_list.append("div")
+                .append("h6").text("Nodes: ");
 
             var final_nodes = d3.selectAll(".crawler_graph rect");
             final_nodes.on("mouseover", function(item) { rect_node_ingress(this, node_labels, node_urls, width, height, item["has_keyword"], keyword)})
@@ -201,7 +209,7 @@ function rect_node_ingress(input, node_labels, node_urls, width, height, has_key
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (Number(this_rect.attr("id").slice(10)) == 0) {
-        hover_text += "<b><i>Start Website</i></b><br/>";
+        hover_text += "<b><i>Start URL</i></b><br/>";
     }
     if (has_keyword) {
         hover_text += "<b><i>Has Keyword: </b>" + keyword + "</i><br/>";
@@ -241,7 +249,7 @@ function dfs_add_supplemental_url(input, url_list, scale, has_keyword) {
     var this_rect = d3.select(input);
     var hover_text = "";
     if (Number(this_rect.attr("id").slice(10)) == 0) {
-        hover_text += "<i>(Start Website)</i> ";
+        hover_text += "<i>(Start URL)</i> ";
     }
     if (has_keyword) {
         hover_text += "<i>(Has Keyword)</i> ";
@@ -293,7 +301,7 @@ function dfs_url_list_click(list_input, rect_input) {
     window.open(url_link, "_blank");
 }
 
-function spiral_plot_one(keyword, width, height, scale, points, node_labels, node_urls) {
+function spiral_plot_one(graph_start_url, graph_depth, keyword, width, height, scale, points, node_labels, node_urls) {
     // Use r(t) = kt
     var r = width/100*2;
     var k = 16;
@@ -363,13 +371,22 @@ function spiral_plot_one(keyword, width, height, scale, points, node_labels, nod
                 .attr("d", "M5,0L4,0L4,3.3L1.1,1.7L0.2,3.4L3,5L0.2,6.6L1.1,8.4L4,6.7L4,10L6,10L6,6.7L8.9,8.4L9.8,6.6L7,5L9.8,3.4L8.9,1.7L6,3.3L6,0")
                 .attr("class","graph_asterisk_path");
 
-        var supplemental_list = d3.select(".graph_url_list")
+        var stop_word = keyword;
+        if (stop_word === "") {
+            stop_word = "(None)";
+        }
+        var supplemental_list = d3.select(".graph_url_list");
         supplemental_list.append("div")
-                            .text("Supplemental List View")
-                            .attr("class", "graph_url_list_title")
+            .append("h6").text("Start URL: " + graph_start_url);
         supplemental_list.append("div")
-                            .text("(Hover Over Nodes In Graph For More Information)")
-                            .attr("class", "graph_url_list_title");
+            .append("h6").text("Crawl Type: BFS");
+        supplemental_list.append("div")
+            .append("h6").text("Depth: " + graph_depth);
+        supplemental_list.append("div")
+            .append("h6").text("Stop Word: " + stop_word);
+        supplemental_list.append("div")
+            .append("h6").text("Nodes:");
+
 
         var final_nodes = d3.selectAll(".crawler_graph rect");
         final_nodes.on("mouseover", function(item) { rect_node_ingress(this, node_labels, node_urls, width, height, item["has_keyword"], keyword)})

@@ -1,5 +1,5 @@
 
-function force_directed_plot(keyword, width, height, scale, points, lines, graph_depth, graph_start_url) {
+function force_directed_plot(graph_start_url, graph_depth, keyword, width, height, scale, points, lines) {
     var tick_counter = 0; // Used to end the simulation without waiting for it to end on its own
     // Use depth_limit to set zoom
     var depth_limit = 1.5;
@@ -271,13 +271,21 @@ function force_directed_plot(keyword, width, height, scale, points, lines, graph
         d3.selectAll(".graph_line")
             .attr("marker-end", "url(#graph_arrow)");
 
-        var supplemental_list = d3.select(".graph_url_list")
+        var stop_word = keyword;
+        if (stop_word === "") {
+            stop_word = "(None)";
+        }
+        var supplemental_list = d3.select(".graph_url_list");
         supplemental_list.append("div")
-                            .text("Supplemental List View")
-                            .attr("class", "graph_url_list_title")
+            .append("h6").text("Start URL: " + graph_start_url);
         supplemental_list.append("div")
-                            .text("(Hover Over Nodes In Graph For More Information)")
-                            .attr("class", "graph_url_list_title");
+            .append("h6").text("Crawl Type: BFS");
+        supplemental_list.append("div")
+            .append("h6").text("Depth: " + graph_depth);
+        supplemental_list.append("div")
+            .append("h6").text("Stop Word: " + stop_word);
+        supplemental_list.append("div")
+            .append("h6").text("Nodes:");
 
         d3.selectAll(".crawler_graph g .link_node").remove();
         var keyword_found = false;
@@ -500,7 +508,7 @@ function circle_node_ingress(input, width, height, depth_limit, keyword) {
     var overall_container = d3.select("#container4");
     var hover_text = "";
     if (this_circle.attr("index") == 0) {
-        hover_text += "<b><i>Start Website</i></b><br/>";
+        hover_text += "<b><i>Start URL</i></b><br/>";
     }
     if (this_circle.attr("has_keyword") == "true") {
         hover_text += "<b><i>Has Keyword: </b>" + keyword + "</i><br/>";
@@ -543,7 +551,7 @@ function bfs_add_supplemental_url(visual_urls, url_list, scale) {
 
         hover_text = "";
         if (url.index == 0) {
-            hover_text += "<i>(Start Website)</i> ";
+            hover_text += "<i>(Start URL)</i> ";
         }
         if (these_circles[0].attr("has_keyword") == "true") {
             hover_text += "<i>(Has Keyword)</i> ";
@@ -595,7 +603,7 @@ function bfs_url_list_click(list_input, jump_link) {
     window.open(jump_link, "_blank");
 }
 
-function force_directed_plot_one(keyword, width, height, scale, points) {
+function force_directed_plot_one(graph_start_url, graph_depth, keyword, width, height, scale, points) {
     var depth_limit = 1;
     width = width * depth_limit;
     height = height * depth_limit;
@@ -642,13 +650,21 @@ function force_directed_plot_one(keyword, width, height, scale, points) {
         .attr("d", "M5,0L4,0L4,3.3L1.1,1.7L0.2,3.4L3,5L0.2,6.6L1.1,8.4L4,6.7L4,10L6,10L6,6.7L8.9,8.4L9.8,6.6L7,5L9.8,3.4L8.9,1.7L6,3.3L6,0")
         .attr("class","graph_asterisk_path");   
 
-    var supplemental_list = d3.select(".graph_url_list")
+    var stop_word = keyword;
+    if (stop_word === "") {
+        stop_word = "(None)";
+    }
+    var supplemental_list = d3.select(".graph_url_list");
     supplemental_list.append("div")
-                        .text("Supplemental List View")
-                        .attr("class", "graph_url_list_title")
+        .append("h6").text("Start URL: " + start_url);
     supplemental_list.append("div")
-                        .text("(Hover Over Nodes In Graph For More Information)")
-                        .attr("class", "graph_url_list_title");
+        .append("h6").text("Crawl Type: BFS");
+    supplemental_list.append("div")
+        .append("h6").text("Depth: " + depth);
+    supplemental_list.append("div")
+        .append("h6").text("Stop Word: " + stop_word);
+    supplemental_list.append("div")
+        .append("h6").text("Nodes: ");
 
     d3.selectAll(".crawler_graph g .link_node").remove();
     var keyword_found = false;

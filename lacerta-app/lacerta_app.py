@@ -14,13 +14,8 @@ app.config['FLASKS3_BUCKET_NAME'] = 'lacerta-app'
 s3 = FlaskS3(app)
 
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
 def render():
-	if request.method == 'POST':
-		container2_data = json.loads(json.dumps(request.form))
-	else:
-		container2_data = None
-
 	history = request.cookies.get('history')
 	if not history:
 		history = ""
@@ -29,7 +24,7 @@ def render():
 	if container1_data[0] == "":
 		container1_data = None
 
-	return render_template('layout.html', container1_data=container1_data, container2_data=container2_data)
+	return render_template('layout.html', container1_data=container1_data)
 
 
 @app.route("/query", methods=['GET', 'POST'])
