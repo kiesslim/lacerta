@@ -79,6 +79,8 @@ def query():
 				history = history + ", " + result_json['start_url']
 			else:
 				history = result_json['start_url']
+			if sys.getsizeof(history) > 4093:
+				history = history.split(', ', 1)[-1]
 
 			#build response
 			if not result.nodes:
