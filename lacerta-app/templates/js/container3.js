@@ -18,7 +18,7 @@ $(document).ready(function() {
         $.ajax({
             type: "POST",
             url: "dev/query",
-            // url: "/query",
+            //url: "/query",
             data: data,
             success: function(output) {
                 graph = JSON.parse(output);
@@ -38,7 +38,7 @@ $(document).ready(function() {
 // change depth menu drop down values
 function depthMenu(searchType){
 	const a = ['1','2','3'];
-	const b = ['1','2','3','4','5','6','7','8','9','10'];
+	const b = ['1','2','3','4','5','6','7','8','9','10', '11','12','13','14','15','16','17','18','19','20'];
 	let s = document.getElementById('depth');
 	for(var i = s.options.length-1; i >= 0 ; i--) { s.options[i] = null; }
 	if(searchType.value !== 0){

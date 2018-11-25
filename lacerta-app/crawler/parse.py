@@ -24,10 +24,11 @@ class Web:
         text = stores renderable webpage text
     """
     def __init__(self, url):
-        print(url)
-        self.url = self.normalize(url)
-        self.response = self.get_response(url)
+        logging.info(url)
+        self.url = self.normalize(build_url(url))
+        self.response = self.get_response(self.url)
         self.status_code = self.get_status()
+        #web.urls is a set in order to get rid of duplicate urls
         self.urls = set()
         self.html = self.get_html()
         self.get_urls_from_html()
@@ -67,7 +68,7 @@ class Web:
 
         if self.status_code is 200 and self.response.content:
             try:
-                return html.fromstring(self.response.text)
+                return html.fromstring(self.response.content)
             except Exception as e:
                 logging.error(e)
         return None
@@ -119,7 +120,7 @@ class Web:
         if cleaned is None:
             logging.error('Error cleaning HTML. Invalid object returned.')
             return None
-        return cleaned.text_content()
+        return cleaned.text_content().lower()
 
 
     def clean_html(self):
@@ -134,7 +135,7 @@ class Web:
             cleaner.comments = True
 
             try:
-                return html.fromstring(cleaner.clean_html(self.response.text))
+                return html.fromstring(cleaner.clean_html(self.response.content))
             except Exception as e:
                 logging.error(e)
 
@@ -149,7 +150,7 @@ class Web:
             returns the response or throws an error
         """
         try:
-            response = requests.get(url, timeout=3.0)
+            response = requests.get(url, timeout=3.0, allow_redirects=True)
             if response.status_code is not 200:
                 logging.error('Reponse Code: {}'.format(response.status_code))
             return response
@@ -168,9 +169,20 @@ class Web:
             return self.response.status_code
         return 500
 
+
 #TODO:add error handling. raise ValueError or exception?
 # note: this may not be needed. Invalid urls could just be represented as
 # dead-end nodes
+def build_url(url):
+    components = urlparse(url)
+    if not components.scheme:
+        return ''.join(('https://',url))
+    return url
+
 def validate_url_format(url):
     components = urlparse(url)
-    return components.scheme and components.netloc
+    if components.scheme and components.netloc:
+        if components.scheme == 'https' or components.scheme == 'http':
+            return True
+    else:
+        return False
