@@ -4,7 +4,6 @@ from flask import jsonify
 import json
 import logging
 from parse import Web, validate_url_format
-from queue import Queue
 import random
 import requests
 import timeit
@@ -21,7 +20,6 @@ class Node:
         has_keyword = set to true if keyword contained within text of webpage"""
     def __init__(self, web):
         self.url = web.url
-        #web.urls is a set in order to get rid of duplicate urls
         self.edges = []
         self.title = web.title
         self.has_keyword = False
@@ -82,25 +80,23 @@ def search(start_url, max_depth, keyword, search_type):
     if not validate_url_format(start_url):
         raise ValueError('Invalid Start URL: {}'.format(start_url))
 
-    r = requests.get(start_url)
-    if r.status_code is not 200:
-        r.raise_for_status()
-
     if not int(max_depth) or int(max_depth) < 0:
         raise ValueError('Error: max_depth must be a positive integer.')
 
-    g = Graph(start_url, max_depth, keyword, search_type)
+    keyword_lower = keyword.lower()
+
+    g = Graph(start_url, max_depth, keyword_lower, search_type)
 
     if search_type == 'BFS':
         if int(max_depth) > 3:
             raise ValueError('Error: Invalid depth. max_depth for BFS is 3, or less')
         toVisit = []
         toVisit.append(g.start_url)
-        return bfs(g, toVisit, keyword, 0, int(max_depth), start_time)
+        return bfs(g, toVisit, keyword_lower, 0, int(max_depth), start_time)
     elif search_type == 'DFS':
-        if int(max_depth) > 50:
-            raise ValueError('Error: Invalid depth. max_depth for DFS must be 50 or less.')
-        return dfs(g, keyword, int(max_depth), start_time, start_url)
+        if int(max_depth) > 20:
+            raise ValueError('Error: Invalid depth. max_depth for DFS must be 20 or less.')
+        return dfs(g, keyword_lower, int(max_depth), start_time, start_url)
     else:
         raise ValueError('Invalid Search Type: Specify BFS or DFS')
 
@@ -131,7 +127,6 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
     next_level = []
     for url in toVisit:
         web = Web(url)
-        #TODO: handle email, tel responses do not have status_code
         if web and web.status_code is 200:
             node = Node(web)
             node.check_for_keyword(web.text, keyword)
@@ -140,8 +135,8 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
             graph.add_node(node)
             logging.debug('nodes = {}'.format(len(graph.nodes)))
             if node.has_keyword:
+                logging.debug("stopping due to keyword")
                 return graph
-            logging.debug(len(graph.nodes))
             if len(graph.nodes) >= MAX_NODES:
                 logging.debug('Maximum number of nodes reached')
                 return graph
@@ -166,9 +161,9 @@ def dfs(graph, keyword, depth, start_time, current_url):
         depth -- user specified graph depth
     """
     if processing_time_exceeded(start_time):
-        logging.error('processing time exceeded')
         return graph
-    if len(graph.nodes) >= depth:
+    if len(graph.nodes)-1 >= depth:
+        logging.debug('max depth reached')
         return graph
     web = Web(current_url)
     if web and web.status_code is 200:
@@ -177,15 +172,13 @@ def dfs(graph, keyword, depth, start_time, current_url):
         node.check_for_keyword(web.text, keyword)
         graph.add_node(node)
         if node.has_keyword:
-            print('keyword: {} found'.format(keyword))
+            logging.debug("stopping due to keyword")
             return graph
         for edge in node.edges:
             if edge not in graph.nodes:
-                print('next node')
                 return dfs(graph, keyword, depth, start_time, edge)
-            print('this is probably it')
-    print('web has invalid status code {}'.format(web.status_code))
     return graph
+
 
 def processing_time_exceeded(start_time):
     if timeit.default_timer() - start_time >= MAX_TIME:
