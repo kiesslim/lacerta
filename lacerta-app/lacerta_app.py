@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, make_response, url_for
 from flask_s3 import FlaskS3
 import logging
-import sys, os, json, traceback
+import sys, os, traceback
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import build_url, validate_url_format
@@ -17,11 +17,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.route("/", methods=['GET', 'POST'])
 def render():
-	if request.method == 'POST':
-		container2_data = json.loads(json.dumps(request.form))
-	else:
-		container2_data = None
-
 	history = request.cookies.get('history')
 	if not history:
 		history = ""
@@ -30,7 +25,7 @@ def render():
 	if container1_data[0] == "":
 		container1_data = None
 
-	return render_template('layout.html', container1_data=container1_data, container2_data=container2_data)
+	return render_template('layout.html', container1_data=container1_data)
 
 
 @app.route("/query", methods=['GET', 'POST'])
