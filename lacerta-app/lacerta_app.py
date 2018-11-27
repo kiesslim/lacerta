@@ -24,8 +24,8 @@ def render():
 
 	if container1_data[0] == "":
 		container1_data = None
-
-	return render_template('layout.html', container1_data=container1_data)
+		
+	return render_template('layout.html', container1_data=container1_data[::-1])
 
 
 @app.route("/query", methods=['GET', 'POST'])
