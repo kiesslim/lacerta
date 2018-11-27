@@ -63,7 +63,8 @@ class Web:
     def get_html(self):
         """
             parses the html from the webpages with valid responses, or it returns
-            a None object otherwise.
+            a None object otherwise. NOTE: html utilizes response.content which does
+            not handle encoding. Encoding was forgone in order to optimize for speed.
         """
 
         if self.status_code is 200 and self.response.content:
@@ -125,7 +126,8 @@ class Web:
 
     def clean_html(self):
         """
-            Cleaner removes HTML tags prior to processing.
+            Cleaner removes HTML tags prior to processing. Note: cleaning removes
+            the Title tags from HTML. Do not clean before grabbing titles!
         """
         if len(self.response.content):
             cleaner = Cleaner()
