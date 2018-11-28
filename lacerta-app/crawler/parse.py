@@ -66,7 +66,6 @@ class Web:
             a None object otherwise. NOTE: html utilizes response.content which does
             not handle encoding. Encoding was forgone in order to optimize for speed.
         """
-
         if self.status_code is 200 and self.response.content:
             try:
                 return html.fromstring(self.response.content)
