@@ -28,7 +28,7 @@ class Web:
         self.url = self.normalize(build_url(url))
         self.response = self.get_response(self.url)
         self.status_code = self.get_status()
-        #web.urls is a set in order to get rid of duplicate urls
+        #urls stored in set to remove duplicates
         self.urls = set()
         self.html = self.get_html()
         self.get_urls_from_html()
@@ -83,13 +83,10 @@ class Web:
         if self.html is None:
             logging.error('HTML not available cannot get URLs')
             return None
-        cleaned = self.clean_html()
-        if cleaned is None:
-            return None
-        raw_urls = cleaned.xpath('//a/@href')
-        if not raw_urls:
-            logging.error('parsing error: unable to parse urls from html')
-        return shuffle([self.urls.add(self.absolute_url(self.normalize(url))) for url in raw_urls])
+        else:
+            raw_urls = self.html.xpath('//a/@href')
+            logging.debug(raw_urls)
+            return shuffle([self.urls.add(self.absolute_url(self.normalize(url))) for url in raw_urls])
 
     def get_title_from_html(self):
         """
@@ -143,8 +140,6 @@ class Web:
             return None
 
 
-    #source: https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
-    #source: http://flask.pocoo.org/docs/0.12/patterns/apierrors/
     #source: http://docs.python-requests.org/en/master/user/quickstart/
     def get_response(self, url):
         """
@@ -171,9 +166,6 @@ class Web:
         return 500
 
 
-#TODO:add error handling. raise ValueError or exception?
-# note: this may not be needed. Invalid urls could just be represented as
-# dead-end nodes
 def build_url(url):
     components = urlparse(url)
     if not components.scheme:
