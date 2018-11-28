@@ -2,8 +2,8 @@
   <h4>Crawl History</h4>
   <ul class="list-unstyled">
     {% if container1_data != None %}
-      {% for url in container1_data %}
-          <li class=""><a href="{{url}}">{{url}}</a></li>
+      {% for crawl in container1_data %}
+          <li><a class="history_link" id="{{crawl["id"]}}" href="#">{{crawl["url"]}}</a></li>
       {% endfor %}
     {% else %}
       <li class="">There is no history :)</li>

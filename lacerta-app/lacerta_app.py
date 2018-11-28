@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, make_response, url_for
 from flask_s3 import FlaskS3
 import logging
-import sys, os, traceback
+import sys, os, traceback, requests
 sys.path.insert(0, "{}/crawler".format(os.getcwd()))
 import search
 from parse import build_url, validate_url_format
@@ -15,17 +15,26 @@ s3 = FlaskS3(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 @app.route("/", methods=['GET', 'POST'])
 def render():
-	history = request.cookies.get('history')
-	if not history:
-		history = ""
-	container1_data = history.split(", ")
+	crawl_history = request.cookies.get('crawl_history')
+	if not crawl_history:
+		crawl_history = ""
+	crawl_ids = crawl_history.split(", ")
 
-	if container1_data[0] == "":
+	container1_data = list()
+
+	if crawl_ids[0] == "":
 		container1_data = None
-		
-	return render_template('layout.html', container1_data=container1_data[::-1])
+	else:
+		crawl_ids = crawl_ids[::-1]
+		for crawl_id in crawl_ids:
+			if crawl_id:
+				r = requests.get("https://kngo467-final.appspot.com/crawls/" + crawl_id)
+				container1_data.append({"id": crawl_id, "url": r.json()["url"]})
+	print(container1_data)
+	return render_template('layout.html', container1_data=container1_data)
 
 
 @app.route("/query", methods=['GET', 'POST'])
@@ -68,21 +77,27 @@ def query():
 			result_json = search.loadGraph(result)
 			result_json_d3 = search.transformGraph(result_json)
 
-			#build cookie
-			history = request.cookies.get('history')
-			if history:
-				history = history + ", " + result_json['start_url']
-			else:
-				history = result_json['start_url']
-			if sys.getsizeof(history) > 4093:
-				history = history.split(', ', 1)[-1]
+			# store crawl data
+			data = {'url': start_url, 'type': search_type, 'depth': depth, 'keyword': keyword}
+			r = requests.post("https://kngo467-final.appspot.com/crawls", json=data)
+			crawl_id = r.json()["id"]
+			print(crawl_id)
 
-			#build response
+			# build cookie
+			crawl_history = request.cookies.get('crawl_history')
+			if crawl_history:
+				crawl_history = crawl_history + ", " + crawl_id
+			else:
+				crawl_history = crawl_id
+			if sys.getsizeof(crawl_history) > 4093:
+				crawl_history = crawl_history.split(', ', 1)[-1]
+
+			# build response
 			if not result.nodes:
 				return bad_request('Oops! Empty Graph! Try another start URL')
 			else:
 				response = make_response(jsonify(result_json_d3), 200)
-				response.set_cookie('history', history)
+				response.set_cookie('crawl_history', crawl_history)
 				return response
 		except ValueError as error:
 			tb = traceback.format_exc()
