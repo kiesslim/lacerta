@@ -75,6 +75,10 @@ class Graph:
 def search(start_url, max_depth, keyword, search_type):
     """search validates form data, and then calls appropriate search function"""
 
+    #NOTE: API Gateway times out in 30 seconds. timer used to ensure function returns
+    # prior to API Gateway time-out. Also note, that this is less than ideal and does
+    # not always work (in the case of encoding, urllib will try every single encoding Type
+    # which will over extend the timer). For future, use fan-out method, and enable a database
     start_time = timeit.default_timer()
 
     if not validate_url_format(start_url):
@@ -111,7 +115,7 @@ def bfs(graph, toVisit, keyword, current_depth, max_depth, start_time):
 
         keyword arguments:
         graph -- graph object containing visited nodes
-        toVisit -- list of neighboring nodes not yet visited
+        toVisit -- list of neighboring nodes not yet visited (as urls)
         keyword -- stop keyword stops search if found on rendered web text
         current_depth -- current level of graph being built
         max_depth -- the maximum depth of the graph

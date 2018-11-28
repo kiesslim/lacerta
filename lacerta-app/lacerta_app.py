@@ -33,7 +33,6 @@ def render():
 			if crawl_id:
 				r = requests.get("https://kngo467-final.appspot.com/crawls/" + crawl_id)
 				container1_data.append({"id": crawl_id, "url": r.json()["url"]})
-	print(container1_data)
 	return render_template('layout.html', container1_data=container1_data)
 
 
