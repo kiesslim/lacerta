@@ -22,7 +22,7 @@ $(document).ready(function() {
             data: data,
             success: function(output) {
                 graph = JSON.parse(output);
-                $("#container1").load( document.URL +  ' #container1' );
+                $("#container1").load(location.href + " #container1>*", "");
                 plotCrawlerGraph(graph);
             },
             error: function(xhr, textStatus, error) {
