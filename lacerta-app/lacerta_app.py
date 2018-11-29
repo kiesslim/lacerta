@@ -95,7 +95,7 @@ def query():
 			if not result.nodes:
 				return bad_request('Oops! Empty Graph! Try another start URL')
 			else:
-				response = make_response(jsonify(result_json_d3), 200)
+				response = make_response(result_json_d3, 200)
 				response.set_cookie('crawl_history', crawl_history)
 				return response
 		except ValueError as error:
