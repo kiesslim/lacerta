@@ -656,11 +656,11 @@ function force_directed_plot_one(graph_start_url, graph_depth, keyword, width, h
     }
     var supplemental_list = d3.select(".graph_url_list");
     supplemental_list.append("div")
-        .append("h6").text("Start URL: " + start_url);
+        .append("h6").text("Start URL: " + graph_start_url);
     supplemental_list.append("div")
         .append("h6").text("Crawl Type: BFS");
     supplemental_list.append("div")
-        .append("h6").text("Depth: " + depth);
+        .append("h6").text("Depth: " + graph_depth);
     supplemental_list.append("div")
         .append("h6").text("Stop Word: " + stop_word);
     supplemental_list.append("div")
@@ -722,7 +722,7 @@ function bfs_add_supplemental_url_one(input, url_list, scale) {
         .attr("class", "graph_url_list_item")
         .on("mouseover", function() { bfs_url_list_ingress_one(this, this_circle);})
         .on("mouseout", function() { bfs_url_list_egress_one(this, this_circle, scale);})
-        .on("click", function() { bfs_url_list_click(this, this_circle);});
+        .on("click", function() { bfs_url_list_click(this, this_circle.attr("jump_link"));});
 }
 
 function bfs_url_list_ingress_one(list_input, circle_input) {
